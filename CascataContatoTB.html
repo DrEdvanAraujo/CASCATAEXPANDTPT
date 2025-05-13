@@ -1,0 +1,2533 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Painel Expand-TPT Integrado</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #eef6f5;
+      display: flex;
+    }
+    nav {
+      width: 250px;
+      background-color: #134e4a;
+      color: white;
+      padding: 20px;
+      height: 100vh;
+      overflow-y: auto;
+      flex-shrink: 0;
+    }
+    nav h2 {
+      margin-bottom: 30px;
+    }
+    nav a {
+      display: block;
+      color: white;
+      text-decoration: none;
+      margin: 10px 0;
+    }
+    main {
+      flex-grow: 1;
+      padding: 20px;
+      height: 100vh;
+      overflow-y: auto;
+    }
+    .section-box {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    input[type="number"], input[type="text"], select, input[type="date"], textarea {
+      width: 100%;
+      max-width: 300px;
+      margin: 5px 0 10px;
+      padding: 8px;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+      box-sizing: border-box;
+    }
+     /* Adjust width for checkboxes in grid or flex */
+    .checkbox-group label {
+        display: inline-block; /* Allow multiple checkboxes on a line */
+        margin-right: 15px;
+        font-weight: normal;
+        margin-bottom: 5px; /* Space between lines */
+    }
+     .checkbox-group input[type="checkbox"] {
+        width: auto;
+        max-width: none;
+        margin-right: 5px;
+        vertical-align: middle;
+        margin-top: 0;
+        margin-bottom: 0;
+    }
+     .checkbox-group {
+         margin-bottom: 15px;
+     }
+
+
+    textarea {
+        min-height: 60px;
+    }
+    button {
+      background-color: #198754;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      margin-top: 10px;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #146c43;
+    }
+    button.edit-btn, button.acompanhamento-btn {
+        background-color: #0dcaf0;
+        padding: 5px 10px;
+        font-size: 0.8em;
+        margin-left: 5px;
+    }
+    button.edit-btn:hover, button.acompanhamento-btn:hover {
+        background-color: #0baccc;
+    }
+     /* New button for adding months and TPT Follow-up*/
+    button.add-month-btn, button.tpt-followup-btn, button.case-index-edit-btn {
+        background-color: #6c757d; /* Grey */
+        padding: 5px 10px;
+        font-size: 0.8em;
+        margin-top: 5px; /* Space above button */
+        margin-bottom: 10px;
+         margin-right: 10px; /* Space between buttons */
+    }
+     button.add-month-btn:hover, button.tpt-followup-btn:hover, button.case-index-edit-btn:hover {
+        background-color: #5a6268;
+    }
+     button.add-followup-btn {
+         background-color: #198754;
+         padding: 5px 10px;
+         font-size: 0.9em;
+     }
+      button.add-followup-btn:hover {
+          background-color: #146c43;
+      }
+
+     button.cancel-edit-btn {
+         background-color: #ffc107; /* Yellow */
+         color: #212529;
+         padding: 10px 20px;
+         margin-top: 10px;
+         border-radius: 5px;
+         cursor: pointer;
+         border: none;
+     }
+     button.cancel-edit-btn:hover {
+         background-color: #ffcd39;
+     }
+
+
+    button.remove-btn {
+        background-color: #dc3545;
+        padding: 5px 10px;
+        font-size: 0.8em;
+        margin-left: 5px;
+    }
+    button.remove-btn:hover {
+        background-color: #bb2d3b;
+    }
+
+    .contact-cascade-item {
+      border-left: 3px solid #0d9488;
+      padding-left: 10px;
+      margin-bottom: 15px;
+      background-color: #f8f9fa;
+      padding: 10px;
+      border-radius: 5px;
+    }
+    .contact-cascade-item h4, .contact-list-item h5, #listaCasosIndice li {
+      margin-top: 0;
+      margin-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .cascade-step {
+      margin-bottom: 5px;
+      padding: 2px 0;
+      font-size: 0.9em;
+    }
+    .pending-action { color: #dc3545; font-weight: bold; }
+    .completed-action { color: #198754; }
+    label { display: block; margin-bottom: 5px; font-weight: 500; }
+    .registrar-contato-layout { display: flex; gap: 20px; }
+    .registrar-contato-form { flex: 1; }
+    #painelContatosDoCI { flex: 1; background-color: #f9f9f9; padding: 15px; border-radius: 8px; max-height: 600px; overflow-y: auto; }
+    .contact-list-item { padding: 10px; border-bottom: 1px solid #eee; }
+    .contact-list-item:last-child { border-bottom: none; }
+    .hidden { display: none !important; }
+    #listaCasosIndice li span { flex-grow: 1; }
+    #listaCasosIndice li .buttons-container { display: flex; }
+
+    /* Pending Actions List */
+    #pendingActionsList {
+        margin-top: 20px;
+        border-top: 1px solid #eee;
+        padding-top: 15px;
+    }
+    #pendingActionsList h3 { margin-top: 0;}
+     #pendingActionsList ul { padding-left: 20px; }
+    #pendingActionsList li {
+        margin-bottom: 8px;
+        color: #dc3545; /* Match pending action color */
+    }
+
+    /* Modal Styles */
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgba(0,0,0,0.6);
+    }
+    .modal-content {
+        background-color: #fefefe;
+        margin: 3% auto;
+        padding: 20px;
+        border: 1px solid #888;
+        width: 90%;
+        max-width: 800px;
+        border-radius: 10px;
+        position: relative;
+    }
+    .modal-body {
+        max-height: 75vh;
+        overflow-y: auto;
+    }
+    .modal-header {
+        padding-bottom: 10px;
+        border-bottom: 1px solid #eee;
+        margin-bottom: 15px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .modal-header h3 { margin: 0; }
+    .close-btn {
+        color: #aaa;
+        font-size: 28px;
+        font-weight: bold;
+        cursor: pointer;
+    }
+    .close-btn:hover, .close-btn:focus {
+        color: black;
+        text-decoration: none;
+    }
+    .form-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+        margin-bottom:10px;
+    }
+     /* Responsive TDO Checkboxes */
+    .tdo-checkboxes {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px; /* space between items */
+        margin-top: 10px;
+        margin-bottom: 5px; /* Less space before the "Add Month" button */
+        border: 1px solid #eee;
+        padding: 10px;
+        border-radius: 5px;
+        background-color: #f9f9f9;
+    }
+    .tdo-checkboxes label {
+        font-weight: normal;
+        margin-bottom: 0; /* Adjust label margin within flex */
+        display: flex; /* Align checkbox and text vertically */
+        align-items: center;
+         flex-basis: 80px; /* Suggest a base width */
+         flex-grow: 1; /* Allow items to grow */
+    }
+     .tdo-checkboxes input[type="checkbox"] {
+         margin-right: 5px;
+         margin-top: 0;
+         margin-bottom: 0;
+     }
+
+    .consulta-acompanhamento-item {
+        border: 1px solid #ddd;
+        padding: 15px;
+        margin-bottom: 15px;
+        border-radius: 5px;
+        background-color: #f9f9f9;
+    }
+    .consulta-acompanhamento-item h5 {
+        margin-top: 0;
+        padding-bottom: 5px;
+        border-bottom: 1px solid #eee;
+        margin-bottom: 10px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+     .tpt-followup-item { /* Style for TPT follow-up entries */
+         border: 1px dashed #ccc;
+         padding: 10px;
+         margin-bottom: 10px;
+         border-radius: 5px;
+         background-color: #f0f0f0;
+     }
+     .tpt-followup-item h6 {
+         margin-top: 0;
+         margin-bottom: 5px;
+         padding-bottom: 3px;
+         border-bottom: 1px dotted #ddd;
+         display: flex;
+         justify-content: space-between;
+         align-items: center;
+     }
+     .tpt-followup-item p {
+         margin-bottom: 5px;
+         font-size: 0.9em;
+     }
+
+
+    #condutaSugeridaAcompanhamento {
+        margin-top:15px;
+        padding:10px;
+        background-color: #eef6f5;
+        border-left: 4px solid #134e4a;
+        border-radius: 4px;
+    }
+    #condutaSugeridaAcompanhamento strong {display: block; margin-bottom: 5px;}
+    .conduta-urgente { color: #B91C1C; font-weight: bold; }
+    .conduta-alerta { color: #D97706; font-weight: bold; }
+    .conduta-normal { color: #059669; }
+    .conduta-info { color: #2563EB; }
+
+    .modal-footer {
+        margin-top: 20px;
+        padding-top:15px;
+        border-top: 1px solid #eee;
+        text-align: right;
+    }
+	
+	.graph {
+      /* Existing styles */
+      /* Add a fixed height */
+      height: 200px; /* You can adjust this value as needed */
+      position: relative; /* Important for responsive charts */
+      margin-bottom: 50px; /* Add some space below the chart */
+    }
+
+    .graph canvas {
+        /* Make the canvas fill its parent's height */
+        height: 100% !important; /* Use !important to override default Chart.js inline styles if necessary */
+        width: 100% !important; /* Ensure canvas width is responsive within the container */
+    }
+  </style>
+</head>
+<body>
+  <nav>
+    <h2>Expand-TPT</h2>
+    <a href="#painel-geral">Painel Geral</a>
+    <a href="#gerenciar-casos-indice">Gerenciar Casos Índice</a>
+    <a href="#registrar-contato">Registrar/Editar Contato</a>
+    <a href="#cascata-individual">Cascata Individual</a>
+    <a href="#" onclick="exportarPDF()">Exportar PDF</a>
+  </nav>
+  <main>
+    <h1>Painel Integrado de Cuidados e Avaliação</h1>
+
+    <div id="painel-geral" class="section-box">
+        <h2>Painel Geral e Agregados</h2>
+        <div class="graph">
+          <h3>Cascata Visual Agregada</h3>
+          <canvas id="chart"></canvas>
+        </div>
+        <div class="recommendations">
+          <h3>Recomendações da Unidade (Agregado)</h3>
+          <ul id="recomendacoes"></ul>
+        </div>
+         <div id="pendingActionsList">
+            <h3>Ações Pendentes / Pacientes que Requerem Atenção</h3>
+            <ul id="listaAcoesPendentes">
+                 <li>Nenhuma ação pendente identificada.</li>
+            </ul>
+        </div>
+    </div>
+
+    <div id="gerenciar-casos-indice" class="section-box">
+      <h2>Gerenciar Casos Índice</h2>
+      <input type="hidden" id="casoIndiceEditId"> <!-- Hidden field for editing -->
+
+      <label for="nomeCasoIndice">Nome do Caso Índice:</label>
+      <input type="text" id="nomeCasoIndice"><br>
+
+       <label for="totalContatosIdentificados">Total de Contatos Identificados por este CI (Manual):</label>
+        <input type="number" id="totalContatosIdentificados" min="0" value="0">
+      <button id="btnSalvarAtualizarCasoIndice" onclick="salvarOuAtualizarCasoIndice()">Adicionar Caso Índice</button>
+       <button id="btnCancelarEdicaoCasoIndice" class="cancel-edit-btn hidden" onclick="limparFormularioCasoIndice()">Cancelar Edição</button>
+
+      <h3>Casos Índice Registrados:</h3>
+      <ul id="listaCasosIndice"></ul>
+    </div>
+
+    <div id="registrar-contato" class="section-box">
+      <h2>Registrar Novo Contato / Editar Contato Existente</h2>
+      <div class="registrar-contato-layout">
+        <div class="registrar-contato-form">
+            <form id="formContato">
+                <input type="hidden" id="contactId"> <!-- Hidden field for editing -->
+
+                <label for="contatoCasoIndiceSelect">Associar ao Caso Índice:</label>
+                <select id="contatoCasoIndiceSelect" onchange="handleCasoIndiceSelectionChange(this.value)"></select><br>
+
+                <label for="contatoNome">Nome do Contato:</label>
+                <input type="text" id="contatoNome"><br>
+
+                <label for="contatoIdade">Idade:</label>
+                <input type="number" id="contatoIdade"><br>
+
+                <label for="contatoConviveTB">Convive com TB ativa?</label>
+                <select id="contatoConviveTB"><option value="sim">Sim</option><option value="nao">Não</option></select><br>
+
+                <label for="contatoSintomas">Sintomas respiratórios?</label>
+                <select id="contatoSintomas"><option value="sim">Sim</option><option value="nao">Não</option></select><br>
+
+                <label for="contatoHIV">Pessoa vivendo com HIV?</label>
+                <select id="contatoHIV"><option value="sim">Sim</option><option value="nao">Não</option></select><br>
+
+                <h4>Populações Prioritárias (se aplicável):</h4>
+                <div class="checkbox-group">
+                    <label><input type="checkbox" id="contatoCarceraria"> População carcerária</label>
+                    <label><input type="checkbox" id="contatoProfSaude"> Profissional de saúde</label>
+                    <label><input type="checkbox" id="contatoImunossuprimido"> Imunossuprimido (não HIV)</label>
+                </div>
+
+                <h3>Status da Cascata do Contato:</h3>
+                 <div class="checkbox-group">
+                    <label><input type="checkbox" id="contatoPPDRealizado" onchange="toggleResultadoPPD()"> PPD realizado</label>
+                    <label><input type="checkbox" id="contatoRXFeito" onchange="toggleResultadoRX()"> RX feito</label>
+                    <label><input type="checkbox" id="contatoTPTIniciado"> TPT iniciado</label>
+                     <label><input type="checkbox" id="contatoTPTCompletado"> TPT completado</label>
+                 </div>
+
+                <div id="divPPDResultado" class="hidden">
+                    <label for="contatoPPDResultado">Resultado PPD:</label>
+                    <select id="contatoPPDResultado">
+                        <option value="">Selecione...</option>
+                        <option value="positivo">Positivo</option>
+                        <option value="negativo">Negativo</option>
+                        <option value="aguardando">Aguardando Resultado</option>
+                    </select>
+                     <label for="contatoPPDValor">Valor PPD (mm):</label>
+                     <input type="number" id="contatoPPDValor" min="0" max="30">
+                </div>
+
+                <div id="divRXResultado" class="hidden">
+                    <label for="contatoRXResultado">Resultado RX:</label>
+                    <select id="contatoRXResultado">
+                        <option value="">Selecione...</option>
+                        <option value="normal">Normal (Sem alterações)</option>
+                        <option value="sugestivo_tb">Alterado (Sugestivo TB)</option>
+                        <option value="alterado_outros">Alterado (Outras causas)</option>
+                        <option value="aguardando">Aguardando Resultado</option>
+                    </select>
+                </div>
+
+                <h4>Regime de TPT e Desfecho:</h4>
+                 <label for="contatoTptRegime">Regime de TPT:</label>
+                 <select id="contatoTptRegime">
+                     <option value="">Não iniciado</option>
+                     <option value="6H">Isoniazida 6 meses (6H)</option>
+                     <option value="3HP">Isoniazida + Rifapentina 3 meses (3HP)</option>
+                      <option value="3HR">Isoniazida + Rifampicina 3 meses (3HR)</option>
+                      <option value="4R">Rifampicina 4 meses (4R)</option>
+                      <option value="outro">Outro</option>
+                 </select>
+                 <label for="contatoDesfecho">Desfecho do Contato:</label>
+                 <select id="contatoDesfecho">
+                     <option value="">Em Andamento / Em Avaliação</option>
+                     <option value="tpt_completo">TPT Completado</option>
+                     <option value="desenvolveu_tb">Desenvolveu TB Ativa</option>
+                     <option value="perdido_seguimento">Perdido de Seguimento</option>
+                     <option value="recusou_tpt">Recusou TPT</option>
+                     <option value="interrompeu_ea">Interrompeu TPT (Evento Adverso)</option>
+                     <option value="interrompeu_outros">Interrompeu TPT (Outros Motivos)</option>
+                     <option value="transferido_saida">Transferido (Saída)</option>
+                      <option value="nao_elegivel">Não Elegível para TPT</option>
+                 </select>
+
+
+                <h4>Monitoramento TDO para TPT:</h4>
+                <div class="tdo-checkboxes" id="contatoTptTdoCheckboxes">
+                    <!-- TDO checkboxes for TPT will be generated here -->
+                </div>
+                 <button type="button" class="add-month-btn" onclick="addTptTdoMonth()">+ Adicionar Mês TPT</button>
+
+                <button type="button" id="btnSalvarAtualizarContato" onclick="salvarOuAtualizarContato()">Salvar Contato</button>
+                <button type="button" onclick="limparFormularioContato()" style="background-color:#6c757d;">Cancelar Edição/Limpar</button>
+                <button type="button" class="tpt-followup-btn hidden" id="btnAbrirTptFollowUpModal" onclick="abrirTptFollowUpModal()">Acompanhamento TPT</button>
+
+                <div id="resultadoAvaliacaoContato" style="margin-top:15px; font-weight:bold;"></div>
+            </form>
+        </div>
+        <div id="painelContatosDoCI">
+            <h4>Contatos do Caso Índice Selecionado</h4>
+            <div id="listaContatosDoCI">Selecione um caso índice para ver seus contatos.</div>
+        </div>
+      </div>
+    </div>
+
+    <div id="cascata-individual" class="section-box">
+        <h2>Cascata Individual por Caso Índice</h2>
+        <label for="cascataIndividualCasoIndiceSelect">Selecionar Caso Índice:</label>
+        <select id="cascataIndividualCasoIndiceSelect" onchange="renderizarCascataIndividual()"></select>
+        <div id="cascataIndividualContainer">
+            <p>Selecione um caso índice para ver os detalhes de seus contatos.</p>
+        </div>
+    </div>
+  </main>
+
+  <!-- Modal de Acompanhamento de TB (Caso Índice) -->
+  <div id="modalAcompanhamentoTB" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="modalAcompanhamentoTitulo">Acompanhamento de Tuberculose (Caso Índice)</h3>
+        <span class="close-btn" onclick="fecharModalAcompanhamento()">×</span>
+      </div>
+      <div class="modal-body">
+          <input type="hidden" id="acompanhamentoCasoIndiceId">
+
+          <h4>Informações Iniciais do Tratamento</h4>
+          <div class="form-grid">
+            <div>
+              <label for="tbDataInicioTratamento">Data Início Tratamento:</label>
+              <input type="date" id="tbDataInicioTratamento" onchange="calcularEExibirCondutaSugerida()">
+            </div>
+            <div>
+              <label for="tbRegimeInicial">Regime Inicial:</label>
+              <select id="tbRegimeInicial" onchange="document.getElementById('tbRegimeInicialOutro').classList.toggle('hidden', this.value !== 'Outro'); calcularEExibirCondutaSugerida();">
+                <option value="RHZE">RHZE (Padrão Adulto)</option>
+                <option value="RHE">RHE (Padrão Criança)</option>
+                <option value="Outro">Outro</option>
+              </select>
+              <input type="text" id="tbRegimeInicialOutro" class="hidden" placeholder="Especificar regime">
+            </div>
+          </div>
+
+          <h4>Monitoramento TDO (Tratamento TB Ativa):</h4>
+           <div class="tdo-checkboxes" id="casoIndiceTdoCheckboxes">
+                <!-- TDO checkboxes for Case Index TB Treatment will be generated here -->
+            </div>
+            <button type="button" class="add-month-btn" onclick="addCasoIndiceTdoMonth()">+ Adicionar Mês TB Ativa</button>
+
+
+          <h4>Consultas de Seguimento</h4>
+          <div id="listaConsultasAcompanhamento">
+            <!-- Consultas serão adicionadas aqui dinamicamente -->
+          </div>
+          <button type="button" class="add-followup-btn" onclick="adicionarNovaConsultaForm()">+ Adicionar Consulta</button>
+
+          <div id="formNovaConsulta" class="consulta-acompanhamento-item hidden" style="background-color: #e9f5e9; margin-top:15px;">
+            <h5 id="formNovaConsultaTitulo">Nova Consulta de Seguimento</h5>
+            <input type="hidden" id="consultaEditId">
+            <div class="form-grid">
+                <div><label for="consultaData">Data da Consulta:</label><input type="date" id="consultaData"></div>
+                <div><label for="consultaPeso">Peso (kg):</label><input type="number" step="0.1" id="consultaPeso"></div>
+            </div>
+            <div><label for="consultaSintomas">Sintomas Atuais (tosse, febre, sudorese, etc.):</label><textarea id="consultaSintomas"></textarea></div>
+            <div class="form-grid">
+                <div>
+                    <label for="consultaBaciloscopia">Baciloscopia Escarro:</label>
+                    <select id="consultaBaciloscopia">
+                        <option value="">Selecione...</option>
+                        <option value="nao_realizada">Não Realizada</option>
+                        <option value="aguardando">Aguardando</option>
+                        <option value="negativa">Negativa</option>
+                        <option value="positiva_escassa">Positiva (Escassa/+)</option>
+                        <option value="positiva_pb">Positiva (++)</option>
+                        <option value="positiva_mb">Positiva (+++)</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="consultaCultura">Cultura Escarro:</label>
+                    <select id="consultaCultura">
+                        <option value="">Selecione...</option>
+                        <option value="nao_realizada">Não Realizada</option>
+                        <option value="aguardando">Aguardando</option>
+                        <option value="negativa">Negativa</option>
+                        <option value="positiva">Positiva</option>
+                        <option value="contaminada">Contaminada</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="consultaRxControle">RX de Controle:</label>
+                    <select id="consultaRxControle">
+                        <option value="">Selecione...</option>
+                        <option value="nao_realizado">Não Realizado</option>
+                        <option value="aguardando">Aguardando Resultado</option>
+                        <option value="normal_resolvido">Normal/Resolução Completa</option>
+                        <option value="melhora_parcial">Melhora Parcial</option>
+                        <option value="sem_alteracao">Sem Alteração Significativa</option>
+                        <option value="piora">Piora das Lesões</option>
+                        <option value="sequela">Sequela Estável</option>
+                         <option value="sugestivo_tb_ativa">Sugestivo TB Ativa (novo/persistente)</option>
+                    </select>
+                </div>
+            </div>
+            <div>
+                <label for="consultaAdesao">Adesão ao Tratamento (auto-relato/observado):</label>
+                <select id="consultaAdesao">
+                    <option value="boa">Boa</option>
+                    <option value="regular">Regular</option>
+                    <option value="ruim">Ruim</option>
+                </select>
+            </div>
+            <div><label for="consultaEfeitosAdversos">Efeitos Adversos / Queixas:</label><textarea id="consultaEfeitosAdversos"></textarea></div>
+            <div><label for="consultaObservacoes">Observações / Condutas Realizadas na Consulta:</label><textarea id="consultaObservacoes"></textarea></div>
+            <button type="button" onclick="salvarConsultaAcompanhamento()">Salvar Consulta</button>
+            <button type="button" onclick="cancelarEdicaoConsulta()" style="background-color:#6c757d;">Cancelar</button>
+          </div>
+
+          <div id="condutaSugeridaAcompanhamento">
+            <strong>Conduta Sugerida:</strong> <span id="textoCondutaSugerida">Preencha os dados para ver a sugestão.</span>
+          </div>
+
+          <h4>Resultado Final do Tratamento</h4>
+           <div class="form-grid">
+            <div>
+                <label for="tbResultadoFinal">Resultado:</label>
+                <select id="tbResultadoFinal" onchange="calcularEExibirCondutaSugerida()">
+                    <option value="">Em Andamento</option>
+                    <option value="cura">Cura</option>
+                    <option value="tratamento_completo">Tratamento Completo</option>
+                    <option value="falha_terapeutica">Falha Terapêutica</option>
+                    <option value="obito_tb">Óbito por TB</option>
+                    <option value="obito_outra">Óbito (Outra Causa)</option>
+                    <option value="perdido_seguimento">Perdido de Seguimento</option>
+                    <option value="transferido_saida">Transferido (Saída)</option>
+                </select>
+            </div>
+            <div>
+                <label for="tbDataTermino">Data Término/Resultado:</label>
+                <input type="date" id="tbDataTermino" onchange="calcularEExibirCondutaSugerida()">
+            </div>
+          </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" onclick="salvarAcompanhamentoGeral()">Salvar Acompanhamento Geral e Fechar</button>
+        <button type="button" onclick="fecharModalAcompanhamento()" style="background-color:#6c757d;">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de Acompanhamento do TPT (Contato) -->
+  <div id="modalAcompanhamentoTPT" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 id="modalAcompanhamentoTPTTitulo">Acompanhamento de TPT para [Nome do Contato]</h3>
+            <span class="close-btn" onclick="fecharTptFollowUpModal()">×</span>
+        </div>
+        <div class="modal-body">
+            <input type="hidden" id="acompanhamentoTPTContactId">
+
+             <h4>Consultas de Acompanhamento do TPT</h4>
+             <div id="listaConsultasAcompanhamentoTPT">
+                 <!-- TPT Follow-up entries will be loaded here -->
+             </div>
+             <button type="button" class="add-followup-btn" onclick="adicionarNovoTptFollowUpForm()">+ Adicionar Acompanhamento TPT</button>
+
+             <div id="formNovoTptFollowUp" class="tpt-followup-item hidden" style="background-color: #e9f5e9; margin-top:15px;">
+                 <h6 id="formNovoTptFollowUpTitulo">Novo Registro de Acompanhamento</h6>
+                 <input type="hidden" id="tptFollowUpEditId">
+                  <div class="form-grid">
+                      <div><label for="tptFollowUpData">Data do Acompanhamento:</label><input type="date" id="tptFollowUpData"></div>
+                       <div>
+                           <label for="tptFollowUpAdesao">Adesão (último período):</label>
+                           <select id="tptFollowUpAdesao">
+                               <option value="boa">Boa</option>
+                               <option value="regular">Regular</option>
+                               <option value="ruim">Ruim</option>
+                                <option value="interrompeu">Interrompeu TPT</option>
+                           </select>
+                       </div>
+                  </div>
+                   <div><label for="tptFollowUpEventosAdversos">Eventos Adversos / Queixas:</label><textarea id="tptFollowUpEventosAdversos"></textarea></div>
+                    <div><label for="tptFollowUpCondutas">Condutas Realizadas:</label><textarea id="tptFollowUpCondutas"></textarea></div>
+
+                 <button type="button" onclick="salvarTptFollowUp()">Salvar Registro</button>
+                 <button type="button" onclick="cancelarEdicaoTptFollowUp()" style="background-color:#6c757d;">Cancelar</button>
+             </div>
+        </div>
+         <div class="modal-footer">
+             <button type="button" onclick="fecharTptFollowUpModal()">Fechar</button>
+         </div>
+    </div>
+  </div>
+
+
+  <script>
+    const ctx = document.getElementById('chart').getContext('2d');
+    let chart;
+    let appData = {
+        casosIndice: [],
+        contatos: []
+    };
+    let editingContactId = null; // Stores the ID of the contact being edited in the form
+    let currentAcompanhamentoData = null; // Holds data for the Case Index currently open in the modal
+    let currentTPTFollowUpContactId = null; // Stores the ID of the contact whose TPT follow-up modal is open
+
+
+    const DEFAULT_MESES_TB_TRATAMENTO = 6;
+    const DEFAULT_MESES_TPT = 3; // Default for 3HP/3HR/4R. Could be 6 for 6H if needed.
+
+
+    function generateId() {
+        return Date.now().toString(36) + Math.random().toString(36).substring(2);
+    }
+
+    // --- Data Management ---
+    function loadAppData() {
+        console.log("Loading app data...");
+        const salvo = localStorage.getItem('expandTPTData');
+        if (salvo) {
+            appData = JSON.parse(salvo);
+            appData.casosIndice = appData.casosIndice || [];
+            appData.contatos = appData.contatos || [];
+
+             // Ensure new fields exist for old data and TDO tracking arrays are initialized (as empty arrays now)
+            appData.contatos = appData.contatos.map(c => ({
+                ...c,
+                ppdResultado: c.ppdResultado || "",
+                ppdValor: c.ppdValor !== undefined ? c.ppdValor : null, // Initialize PPD value, preserve 0 or null
+                rxResultado: c.rxResultado || "",
+                isCarceraria: c.isCarceraria || false,
+                isProfSaude: c.isProfSaude || false,
+                isImunossuprimido: c.isImunossuprimido || false,
+                tptTdoMeses: c.tptTdoMeses || [], // Initialize as empty array []
+                tptRegime: c.tptRegime || "", // Initialize TPT Regimen
+                outcome: c.outcome || "", // Initialize Contact Outcome
+                tptFollowUps: c.tptFollowUps || [] // Initialize TPT Follow-ups array
+            }));
+
+            appData.casosIndice.forEach(ci => {
+                if (!ci.acompanhamentoTB) {
+                    ci.acompanhamentoTB = {
+                        tratamentoIniciadoEm: '', regimeInicial: 'RHZE', regimeInicialOutro: '',
+                        consultas: [], resultadoTratamento: '', dataTermino: '',
+                        tdoMeses: [] // Initialize TDO tracking as empty
+                    };
+                } else {
+                    // Ensure TB TDO tracking array exists
+                     ci.acompanhamentoTB.tdoMeses = ci.acompanhamentoTB.tdoMeses || [];
+
+                    // Ensure consultas array exists and rxControleResultado exists in each consulta
+                    ci.acompanhamentoTB.consultas = (ci.acompanhamentoTB.consultas || ci.acompanhamentoTB.visitas || []).map(consulta => ({
+                        ...consulta,
+                        rxControleResultado: consulta.rxControleResultado || ""
+                    }));
+                    delete ci.acompanhamentoTB.visitas; // Clean up old key if it existed
+                }
+                 // Ensure totalContactsIdentified exists for old case indices
+                ci.totalContatosIdentificados = ci.totalContatosIdentificados || 0;
+            });
+        } else {
+             appData = { casosIndice: [], contatos: [] };
+        }
+        console.log("App data loaded:", appData);
+
+        renderCasosIndiceList();
+        renderCasosIndiceDropdowns();
+        updateAggregatedDataAndCharts();
+
+        // Render default TPT checkboxes if no CI is selected (new contact case) initially
+        renderTptTdoCheckboxes(Array(DEFAULT_MESES_TPT).fill(false));
+         // Hide TPT Follow-up button initially until a contact is selected/edited
+        document.getElementById('btnAbrirTptFollowUpModal').classList.add('hidden');
+
+
+        renderizarCascataIndividual();
+         renderAcoesPendentesList(); // Render the initial pending actions list
+    }
+
+    function saveAppData() {
+        console.log("Saving app data...");
+        localStorage.setItem('expandTPTData', JSON.stringify(appData));
+         renderAcoesPendentesList(); // Update pending actions list after saving
+        console.log("App data saved.");
+    }
+
+    // --- Format Result Utility ---
+    function formatResultado(valor, tipo) {
+        if (valor === null || valor === undefined || valor === "") {
+            // Handle specific cases where "" might mean "Not Informed" vs. "Not Done" vs. "In Progress"
+             if (tipo === 'ppd' || tipo === 'rx') return 'Não realizado/Não informado';
+             if (tipo === 'adesao') return 'N/A';
+             if (tipo === 'desfecho_contato') return 'Em Andamento / Em Avaliação';
+             if (tipo === 'resultado_tb') return 'Em Andamento';
+             return 'N/I'; // Not Informed
+        }
+
+        if (tipo === 'baciloscopia') {
+            const map = { 'nao_realizada': 'Não Realizada', 'aguardando': 'Aguardando', 'negativa': 'Negativa',
+                          'positiva_escassa': 'Positiva (Escassa/+)', 'positiva_pb': 'Positiva (++)', 'positiva_mb': 'Positiva (+++)'};
+            return map[valor] || valor;
+        }
+        if (tipo === 'cultura') {
+            const map = { 'nao_realizada': 'Não Realizada', 'aguardando': 'Aguardando', 'negativa': 'Negativa',
+                          'positiva': 'Positiva', 'contaminada': 'Contaminada' };
+            return map[valor] || valor;
+        }
+        if (tipo === 'rx_controle') {
+            const map = { 'nao_realizado': 'Não Realizado', 'aguardando': 'Aguardando Resultado',
+                          'normal_resolvido': 'Normal/Resolução Completa', 'melhora_parcial': 'Melhora Parcial',
+                          'sem_alteracao': 'Sem Alteração Significativa', 'piora': 'Piora das Lesões',
+                          'sequela': 'Sequela Estável', 'sugestivo_tb_ativa': 'Sugestivo TB Ativa'};
+            return map[valor] || valor;
+        }
+        if (tipo === 'ppd') {
+             const map = { 'positivo': 'Positivo', 'negativo': 'Negativo', 'aguardando': 'Aguardando' };
+             return map[valor] || valor;
+        }
+        if (tipo === 'rx') {
+             const map = { 'normal': 'Normal (Sem alterações)', 'sugestivo_tb': 'Sugestivo TB', 'alterado_outros': 'Alterado (Outras causas)', 'aguardando': 'Aguardando Resultado' };
+             return map[valor] || valor;
+        }
+         if (tipo === 'desfecho_contato') {
+             const map = {
+                 '': 'Em Andamento / Em Avaliação',
+                 'tpt_completo': 'TPT Completado',
+                 'desenvolveu_tb': 'Desenvolveu TB Ativa',
+                 'perdido_seguimento': 'Perdido de Seguimento',
+                 'recusou_tpt': 'Recusou TPT',
+                 'interrompeu_ea': 'Interrompeu TPT (Evento Adverso)',
+                 'interrompeu_outros': 'Interrompeu TPT (Outros Motivos)',
+                 'transferido_saida': 'Transferido (Saída)',
+                 'nao_elegivel': 'Não Elegível para TPT'
+             };
+              return map[valor] || valor;
+         }
+        if (tipo === 'resultado_tb') {
+            const map = {
+                '': 'Em Andamento', 'cura': 'Cura', 'tratamento_completo': 'Tratamento Completo',
+                'falha_terapeutica': 'Falha Terapêutica', 'obito_tb': 'Óbito por TB',
+                'obito_outra': 'Óbito (Outra Causa)', 'perdido_seguimento': 'Perdido de Seguimento',
+                'transferido_saida': 'Transferido (Saída)'
+            };
+            return map[valor] || valor;
+        }
+        if (tipo === 'adesao') {
+             const map = {'boa': 'Boa', 'regular': 'Regular', 'ruim': 'Ruim', 'interrompeu': 'Interrompeu'};
+             return map[valor] || valor;
+        }
+        return valor; // Default return if type is unknown or value is valid
+    }
+
+
+    // --- Caso Índice Management ---
+    // Function to load a case index's data into the form for editing
+    function loadCasoIndiceForEditing(id) {
+        console.log("Loading Case Index for editing:", id);
+        const casoIndice = appData.casosIndice.find(ci => ci.id === id);
+        if (!casoIndice) {
+            alert("Caso índice não encontrado para edição.");
+            return;
+        }
+        document.getElementById('casoIndiceEditId').value = casoIndice.id;
+        document.getElementById('nomeCasoIndice').value = casoIndice.nome;
+        document.getElementById('totalContatosIdentificados').value = casoIndice.totalContatosIdentificados || 0;
+
+        document.getElementById('btnSalvarAtualizarCasoIndice').textContent = 'Atualizar Caso Índice';
+        document.getElementById('btnCancelarEdicaoCasoIndice').classList.remove('hidden');
+    }
+
+    // Function to clear the Case Index form
+    function limparFormularioCasoIndice() {
+        console.log("Clearing Case Index form.");
+        document.getElementById('casoIndiceEditId').value = '';
+        document.getElementById('nomeCasoIndice').value = '';
+        document.getElementById('totalContatosIdentificados').value = 0;
+        document.getElementById('btnSalvarAtualizarCasoIndice').textContent = 'Adicionar Caso Índice';
+        document.getElementById('btnCancelarEdicaoCasoIndice').classList.add('hidden');
+    }
+
+    // Combined function to save or update a Case Index
+    function salvarOuAtualizarCasoIndice() {
+        const id = document.getElementById('casoIndiceEditId').value;
+        const nomeInput = document.getElementById('nomeCasoIndice');
+        const nome = nomeInput.value.trim();
+         const totalContatosIdentificadosInput = document.getElementById('totalContatosIdentificados');
+        const totalContatosIdentificados = +totalContatosIdentificadosInput.value;
+
+         console.log('salvarOuAtualizarCasoIndice started. id:', id, 'nome:', nome, 'totalContatosIdentificados:', totalContatosIdentificados);
+         console.log('appData.casosIndice.length BEFORE:', appData.casosIndice.length);
+
+
+        if (!nome) { alert("Por favor, insira um nome para o caso índice."); return; }
+         if (totalContatosIdentificados < 0) { alert("Por favor, insira um número válido para contatos identificados."); return; }
+
+         // Check for duplicate name only if adding a new case or changing the name on edit
+         const existingCi = appData.casosIndice.find(ci => ci.nome.toLowerCase() === nome.toLowerCase());
+        if (existingCi && existingCi.id !== id) {
+             alert("Um caso índice com este nome já existe.");
+             return;
+         }
+
+
+        if (id) { // Editing existing case index
+            console.log("Editing existing Case Index:", id);
+            const index = appData.casosIndice.findIndex(ci => ci.id === id);
+            if (index > -1) {
+                appData.casosIndice[index].nome = nome;
+                 appData.casosIndice[index].totalContatosIdentificados = totalContatosIdentificados;
+                alert("Caso índice atualizado com sucesso!");
+            } else {
+                 alert("Erro: Caso índice para atualização não encontrado.");
+            }
+        } else { // Adding new case index
+            console.log("Adding new Case Index.");
+            appData.casosIndice.push({
+                id: generateId(),
+                nome: nome,
+                 totalContatosIdentificados: totalContatosIdentificados,
+                acompanhamentoTB: {
+                    tratamentoIniciadoEm: '', regimeInicial: 'RHZE', regimeInicialOutro: '',
+                    consultas: [], resultadoTratamento: '', dataTermino: '',
+                    tdoMeses: []
+                }
+            });
+            alert("Caso índice adicionado com sucesso!");
+        }
+
+        saveAppData();
+        limparFormularioCasoIndice();
+        renderCasosIndiceList();
+        renderCasosIndiceDropdowns();
+        updateAggregatedDataAndCharts();
+         console.log('appData.casosIndice.length AFTER:', appData.casosIndice.length);
+    }
+
+
+    function removerCasoIndice(idToRemove) {
+        console.log("Removing Case Index:", idToRemove);
+        const casoIndice = appData.casosIndice.find(ci => ci.id === idToRemove);
+        if (!casoIndice) {
+            alert("Caso índice não encontrado para remoção.");
+            return;
+        }
+        if (confirm(`Tem certeza que deseja remover o caso índice "${casoIndice.nome}"? TODOS os contatos associados e o acompanhamento de TB também serão removidos.`)) {
+            appData.casosIndice = appData.casosIndice.filter(ci => ci.id !== idToRemove);
+            appData.contatos = appData.contatos.filter(contato => contato.casoIndiceId !== idToRemove);
+            saveAppData();
+            renderCasosIndiceList();
+            renderCasosIndiceDropdowns();
+            updateAggregatedDataAndCharts();
+            // Reset forms/views if the removed CI was selected
+            const ciSelectForm = document.getElementById('contatoCasoIndiceSelect');
+            if (ciSelectForm.value === idToRemove) {
+                ciSelectForm.value = "";
+                handleCasoIndiceSelectionChange(""); // This clears contact form and sidebar
+            }
+            const ciSelectIndividual = document.getElementById('cascataIndividualCasoIndiceSelect');
+            if (ciSelectIndividual.value === idToRemove) {
+                ciSelectIndividual.value = "";
+                renderizarCascataIndividual();
+            }
+             // Clear the case index edit form if the one being edited is removed
+            if (document.getElementById('casoIndiceEditId').value === idToRemove) {
+                 limparFormularioCasoIndice();
+             }
+
+            alert(`Caso índice "${casoIndice.nome}" e seus dados foram removidos.`);
+        }
+    }
+
+    function renderCasosIndiceList() {
+        const listaUl = document.getElementById('listaCasosIndice');
+        listaUl.innerHTML = '';
+        if (!appData.casosIndice || appData.casosIndice.length === 0) {
+            listaUl.innerHTML = '<li>Nenhum caso índice registrado.</li>';
+            return;
+        }
+        appData.casosIndice.forEach(ci => {
+            const li = document.createElement('li');
+            const nameSpan = document.createElement('span');
+             const contactsRegisteredCount = appData.contatos.filter(c => c.casoIndiceId === ci.id).length;
+             const totalManual = ci.totalContatosIdentificados || 0;
+             const countText = `(Registrados: ${contactsRegisteredCount}, Identificados: ${totalManual})`;
+             nameSpan.textContent = `${ci.nome} ${countText}`;
+
+            li.appendChild(nameSpan);
+
+            const buttonsContainer = document.createElement('div');
+            buttonsContainer.classList.add('buttons-container');
+
+             // Add Edit button for Case Index
+            const editCIBtn = document.createElement('button');
+            editCIBtn.textContent = 'Editar CI';
+            editCIBtn.classList.add('case-index-edit-btn'); // Using a specific class
+            editCIBtn.onclick = () => loadCasoIndiceForEditing(ci.id);
+            buttonsContainer.appendChild(editCIBtn);
+
+
+            // Add Acompanhar TB button
+            const acompanhamentoBtn = document.createElement('button');
+            acompanhamentoBtn.textContent = 'Acompanhar TB';
+            acompanhamentoBtn.classList.add('acompanhamento-btn');
+            acompanhamentoBtn.onclick = () => abrirModalAcompanhamento(ci.id);
+            buttonsContainer.appendChild(acompanhamentoBtn);
+
+            // Add Remover button
+            const removeBtn = document.createElement('button');
+            removeBtn.textContent = 'Remover';
+            removeBtn.classList.add('remove-btn');
+            removeBtn.onclick = () => removerCasoIndice(ci.id);
+            buttonsContainer.appendChild(removeBtn);
+
+            li.appendChild(buttonsContainer);
+            listaUl.appendChild(li);
+        });
+    }
+
+    function renderCasosIndiceDropdowns() {
+        const selects = [
+            document.getElementById('contatoCasoIndiceSelect'),
+            document.getElementById('cascataIndividualCasoIndiceSelect')
+        ];
+        selects.forEach(select => {
+            if (!select) return;
+            const currentValue = select.value;
+            select.innerHTML = '<option value="">Selecione...</option>';
+            appData.casosIndice.forEach(ci => {
+                const option = document.createElement('option');
+                option.value = ci.id;
+                option.textContent = ci.nome;
+                select.appendChild(option);
+            });
+            // Restore previously selected value if it still exists
+            if (currentValue && appData.casosIndice.find(ci => ci.id === currentValue)) {
+                 select.value = currentValue;
+            } else {
+                select.value = ""; // Clear if the selected CI was removed
+            }
+        });
+    }
+
+    // --- Contato Form Management & Side Panel ---
+     // Renders TPT TDO checkboxes based on a provided array (or default count)
+    function renderTptTdoCheckboxes(tdoStatusArray) {
+        const container = document.getElementById('contatoTptTdoCheckboxes');
+        container.innerHTML = ''; // Clear previous checkboxes
+
+        // Determine the number of months to render based on the TPT regimen selected
+        let numberOfMonths = 0;
+        const tptRegime = document.getElementById('contatoTptRegime').value;
+        if (tptRegime === '6H') numberOfMonths = 6;
+        else if (tptRegime === '3HP' || tptRegime === '3HR') numberOfMonths = 3;
+        else if (tptRegime === '4R') numberOfMonths = 4;
+        else if (tptRegime === 'outro' && tdoStatusArray && tdoStatusArray.length > 0) {
+             // If "Other" is selected, preserve the number of months saved in the data
+             numberOfMonths = tdoStatusArray.length;
+        } else {
+             numberOfMonths = DEFAULT_MESES_TPT; // Default for new contacts or if regime is "" or "outro" with no saved data
+        }
+
+
+        // Ensure the array matches the expected number of months
+        let monthsToRender = Array(numberOfMonths).fill(false);
+         if (tdoStatusArray && tdoStatusArray.length > 0) {
+              // Use existing status up to the current numberOfMonths, pad if necessary
+             for(let i=0; i < Math.min(numberOfMonths, tdoStatusArray.length); i++){
+                  monthsToRender[i] = tdoStatusArray[i];
+             }
+         } else if (tdoStatusArray && tdoStatusArray.length > 0 && tptRegime === 'outro') {
+             // Special case for "outro" - use saved data size
+             monthsToRender = tdoStatusArray;
+         }
+
+
+        monthsToRender.forEach((isChecked, index) => {
+             const month = index + 1;
+             const label = document.createElement('label');
+             label.innerHTML = `<input type="checkbox" id="tptTdoMonth${month}" ${isChecked ? 'checked' : ''}> Mês ${month}`;
+             container.appendChild(label);
+        });
+    }
+
+    // Reads the current state of the TPT TDO checkboxes displayed on the form
+    function getTptTdoCheckboxesStatus() {
+        const status = [];
+        const container = document.getElementById('contatoTptTdoCheckboxes');
+        container.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+            status.push(checkbox.checked);
+        });
+        return status;
+    }
+
+     // Adds one month checkbox to the TPT TDO list on the form
+    function addTptTdoMonth() {
+        const currentStatus = getTptTdoCheckboxesStatus();
+        currentStatus.push(false); // Add a new month, unchecked by default
+        renderTptTdoCheckboxes(currentStatus); // Re-render with the new month
+    }
+
+
+    function handleCasoIndiceSelectionChange(casoIndiceId) {
+        console.log("CI dropdown changed:", casoIndiceId);
+        renderPainelContatosLaterais(casoIndiceId);
+        // When changing selected CI in the contact form, clear the form and reset TPT TDO checkboxes
+        limparFormularioContato();
+         // renderTptTdoCheckboxes is called within limparFormularioContato
+    }
+
+    function renderPainelContatosLaterais(casoIndiceId) {
+        console.log("Rendering side panel for CI:", casoIndiceId);
+        const container = document.getElementById('listaContatosDoCI');
+        if (!casoIndiceId) {
+            container.innerHTML = 'Selecione um caso índice para ver seus contatos.';
+            return;
+        }
+        const contatosDoCaso = appData.contatos.filter(c => c.casoIndiceId === casoIndiceId);
+        const casoIndice = appData.casosIndice.find(ci => ci.id === casoIndiceId);
+        if (!casoIndice) {
+            container.innerHTML = 'Caso índice não encontrado (pode ter sido removido).';
+            return;
+        }
+        if (contatosDoCaso.length === 0) {
+            container.innerHTML = `Nenhum contato registrado para ${casoIndice.nome}.`;
+            return;
+        }
+        let html = '';
+        contatosDoCaso.forEach(contato => {
+             const riskFactors = [];
+            if (contato.idade < 10) riskFactors.push('Criança < 10a');
+            if (contato.hiv === 'sim') riskFactors.push('PVHIV');
+            if (contato.isCarceraria) riskFactors.push('Carcerária');
+            if (contato.isProfSaude) riskFactors.push('Prof. Saúde');
+            if (contato.isImunossuprimido) riskFactors.push('Imunossuprimido');
+            const riskText = riskFactors.length > 0 ? ` (${riskFactors.join(', ')})` : '';
+
+             const mesesTDO = contato.tptTdoMeses ? contato.tptTdoMeses.filter(status => status).length : 0;
+             const totalMesesPrevistos = contato.tptTdoMeses ? contato.tptTdoMeses.length : (contato.tptRegime === '6H' ? 6 : (contato.tptRegime === '3HP' || contato.tptRegime === '3HR' ? 3 : (contato.tptRegime === '4R' ? 4 : 0)));
+             const tptTdoSummary = contato.tptIniciado ? (contato.tptTdoMeses && contato.tptTdoMeses.length > 0 ? ` (TDO: ${mesesTDO}/${totalMesesPrevistos}m)` : ' (TPT iniciado, TDO N/R)') : '';
+             const tptRegimeText = contato.tptRegime && contato.tptRegime !== "" ? `Regime: ${contato.tptRegime}` : '';
+             const outcomeText = contato.outcome && contato.outcome !== "" ? `Desfecho: ${formatResultado(contato.outcome, 'desfecho_contato')}` : 'Desfecho: Em Avaliação';
+
+
+            html +=
+                `<div class="contact-list-item">
+                    <h5>${contato.nome} ${riskText} <button type="button" class="edit-btn" onclick="loadContactForEditing('${contato.id}')">Editar</button></h5>
+                    <small>
+                        Convive c/TB: ${contato.conviveTB === 'sim' ? 'Sim' : 'Não'} | Sintomas: ${contato.sintomas === 'sim' ? 'Sim' : 'Não'} | HIV: ${contato.hiv === 'sim' ? 'Sim' : 'Não'}
+                        <br>
+                        PPD: ${contato.ppdRealizado ? `Sim (${formatResultado(contato.ppdResultado, 'ppd')})${contato.ppdValor !== null ? ` (${contato.ppdValor}mm)` : ''}` : 'Não Realizado'} |
+                        RX: ${contato.rxFeito ? `Sim (${formatResultado(contato.rxResultado, 'rx')})` : 'Não Realizado'}
+                        <br>
+                        TPT Inic.: ${contato.tptIniciado ? 'Sim' : 'Não'}${tptTdoSummary} | TPT Compl.: ${contato.tptCompletado ? 'Sim' : 'Não'}
+                        <br>${tptRegimeText} | ${outcomeText}
+                    </small>
+                </div>`;
+        });
+        container.innerHTML = html;
+    }
+    function toggleResultadoPPD() {
+        const ppdRealizadoChecked = document.getElementById('contatoPPDRealizado').checked;
+        document.getElementById('divPPDResultado').classList.toggle('hidden', !ppdRealizadoChecked);
+        if (!ppdRealizadoChecked) {
+             document.getElementById('contatoPPDResultado').value = '';
+             document.getElementById('contatoPPDValor').value = ''; // Clear PPD value
+        }
+    }
+    function toggleResultadoRX() {
+        const rxFeitoChecked = document.getElementById('contatoRXFeito').checked;
+        document.getElementById('divRXResultado').classList.toggle('hidden', !rxFeitoChecked);
+        if (!rxFeitoChecked) document.getElementById('contatoRXResultado').value = '';
+    }
+    function limparFormularioContato() {
+        console.log("limparFormularioContato called. editingContactId BEFORE:", editingContactId);
+        const form = document.getElementById('formContato');
+        form.reset();
+        document.getElementById('contactId').value = ''; // Clear hidden ID
+        editingContactId = null; // Explicitly clear the JS variable
+        document.getElementById('btnSalvarAtualizarContato').textContent = 'Salvar Contato';
+        document.getElementById('resultadoAvaliacaoContato').innerHTML = '';
+        toggleResultadoPPD(); // Reset hidden PPD fields
+        toggleResultadoRX(); // Reset hidden RX fields
+         // Reset new fields and TDO checkboxes
+        document.getElementById('contatoCarceraria').checked = false;
+        document.getElementById('contatoProfSaude').checked = false;
+        document.getElementById('contatoImunossuprimido').checked = false;
+        document.getElementById('contatoTptRegime').value = ""; // Reset TPT Regime
+        document.getElementById('contatoDesfecho').value = ""; // Reset Outcome
+        renderTptTdoCheckboxes([]); // Reset TPT TDO checkboxes to default unchecked (based on default regimen or empty)
+        document.getElementById('btnAbrirTptFollowUpModal').classList.add('hidden'); // Hide follow-up button
+
+        // Refresh side panel for the currently selected CI (which might be empty now)
+        const selectedCI = document.getElementById('contatoCasoIndiceSelect').value;
+        renderPainelContatosLaterais(selectedCI);
+        console.log("limparFormularioContato finished. editingContactId AFTER:", editingContactId);
+    }
+    function loadContactForEditing(contactId) {
+        console.log("loadContactForEditing:", contactId);
+        const contato = appData.contatos.find(c => c.id === contactId);
+        if (!contato) {
+            alert("Contato não encontrado, pode ter sido removido.");
+            renderPainelContatosLaterais(document.getElementById('contatoCasoIndiceSelect').value);
+            return;
+        }
+        editingContactId = contactId; // Set the JS variable
+        document.getElementById('contactId').value = contactId; // Set hidden ID (mostly for reference, JS variable is primary)
+
+        // Populate form fields
+        document.getElementById('contatoCasoIndiceSelect').value = contato.casoIndiceId;
+        document.getElementById('contatoNome').value = contato.nome;
+        document.getElementById('contatoIdade').value = contato.idade;
+        document.getElementById('contatoConviveTB').value = contato.conviveTB;
+        document.getElementById('contatoSintomas').value = contato.sintomas;
+        document.getElementById('contatoHIV').value = contato.hiv;
+
+        // Load new fields
+        document.getElementById('contatoCarceraria').checked = contato.isCarceraria || false;
+        document.getElementById('contatoProfSaude').checked = contato.isProfSaude || false;
+        document.getElementById('contatoImunossuprimido').checked = contato.isImunossuprimido || false;
+
+        document.getElementById('contatoPPDRealizado').checked = contato.ppdRealizado;
+        document.getElementById('contatoPPDResultado').value = contato.ppdResultado || "";
+        document.getElementById('contatoPPDValor').value = contato.ppdValor !== null ? contato.ppdValor : ''; // Load PPD value
+        toggleResultadoPPD(); // Show/hide PPD results based on checkbox
+        document.getElementById('contatoRXFeito').checked = contato.rxFeito;
+        document.getElementById('contatoRXResultado').value = contato.rxResultado || "";
+        toggleResultadoRX(); // Show/hide RX results based on checkbox
+        document.getElementById('contatoTPTIniciado').checked = contato.tptIniciado;
+        document.getElementById('contatoTPTCompletado').checked = contato.tptCompletado;
+
+         document.getElementById('contatoTptRegime').value = contato.tptRegime || ""; // Load TPT Regime
+         // Call renderTptTdoCheckboxes AFTER setting the regime, as it affects the number of checkboxes
+         renderTptTdoCheckboxes(contato.tptTdoMeses || []); // Load and render TPT TDO checkboxes
+
+        document.getElementById('contatoDesfecho').value = contato.outcome || ""; // Load Outcome
+
+        // Show TPT Follow-up button if TPT was initiated
+         if(contato.tptIniciado){
+             document.getElementById('btnAbrirTptFollowUpModal').classList.remove('hidden');
+         } else {
+             document.getElementById('btnAbrirTptFollowUpModal').classList.add('hidden');
+         }
+
+
+        document.getElementById('btnSalvarAtualizarContato').textContent = 'Atualizar Contato';
+        // Recalculate and display initial assessment on load
+         const isCarceraria = document.getElementById('contatoCarceraria').checked;
+         const isProfSaude = document.getElementById('contatoProfSaude').checked;
+         const isImunossuprimido = document.getElementById('contatoImunossuprimido').checked;
+         const ppdRealizado = document.getElementById('contatoPPDRealizado').checked;
+         const ppdResultado = ppdRealizado ? document.getElementById('contatoPPDResultado').value : "";
+         const ppdValor = ppdRealizado && document.getElementById('contatoPPDValor').value !== '' ? +document.getElementById('contatoPPDValor').value : null;
+
+        const avaliacao = avaliarRiscoContatoInterno(contato.idade, contato.conviveTB, contato.sintomas, contato.hiv, isCarceraria, isProfSaude, isImunossuprimido, ppdRealizado, ppdResultado, ppdValor);
+        document.getElementById('resultadoAvaliacaoContato').innerHTML = `<strong>Avaliação Sugerida:</strong> ${avaliacao}`;
+
+
+        renderPainelContatosLaterais(contato.casoIndiceId); // Re-render side panel for the selected CI
+        document.getElementById('registrar-contato').scrollIntoView({ behavior: 'smooth' }); // Scroll to the contact form
+        console.log("loadContactForEditing finished. editingContactId:", editingContactId);
+    }
+
+    // Modified avaliarRiscoContatoInterno to use PPD value and refine logic
+    function avaliarRiscoContatoInterno(idade, conviveTB, sintomas, hiv, isCarceraria, isProfSaude, isImunossuprimido, ppdRealizado, ppdResultado, ppdValor) {
+      let texto = '';
+      const isPriorityGroup = (idade < 5) || (hiv === 'sim') || isCarceraria || isProfSaude || isImunossuprimido; // <5 per new rule
+
+      // Determine PPD positivity threshold based on risk factors
+      let ppdThreshold = 10; // Default for non-priority groups (age >= 5 and not other priority factors)
+      if (isPriorityGroup) {
+          ppdThreshold = 5; // Lower threshold for high-risk groups
+      }
+      const isPpdPositiveByThreshold = ppdRealizado && ppdResultado === 'positivo' && ppdValor !== null && ppdValor >= ppdThreshold;
+      const isPpdNegativeByThreshold = ppdRealizado && ppdResultado === 'negativo'; // Simple negative based on result dropdown
+      const isPpdAguardando = ppdRealizado && ppdResultado === 'aguardando';
+
+
+      if (conviveTB === 'sim') {
+        texto += 'Contato de caso de TB ativo. ';
+        if (sintomas === 'sim') {
+             texto += '⚠️ Sintomas respiratórios. Encaminhar para RX + TRM/Bacilo/Cultura IMEDIATO para excluir TB ativa.';
+        } else { // Assintomático
+            if (isPriorityGroup) {
+                 texto += '⭐ Contato de grupo prioritário assintomático. Encaminhar para RX (OBRIGATÓRIO para excluir TB ativa). Se RX normal, INDICAÇÃO DE TPT, independentemente do PPD.';
+            } else { // Assintomático, sem ser grupo prioritário (idade >= 5 e sem os outros fatores)
+                 texto += `💉 Assintomático, sem ser de grupo prioritário. Realizar PPD (corte: ${ppdThreshold}mm). Se PPD+ e RX normal (se feito), iniciar TPT. Se PPD-, monitorar.`;
+            }
+        }
+      } else {
+        texto += '🔍 Sem contato com TB ativa (deste CI) relatado. ';
+        if (isPriorityGroup && sintomas === 'nao') {
+             texto += '⭐ Grupo prioritário, assintomático. Indicar TPT APENAS se houver confirmação de contato prévio com TB ativa (não o CI atual) E TB ativa excluída. Monitorar. ';
+        } else if (sintomas === 'sim') {
+             texto += '🤧 Sintomas respiratórios. Investigar outras causas. Considerar TB se epidemiologia compatível. ';
+        }
+         if (!isPriorityGroup && sintomas === 'nao') {
+             texto += 'Monitorar. Sem indicação primária de TPT por este critério (sem contato ativo ou grupo prioritário).';
+         }
+         // If PPD positive but no contact with current CI (and not priority group) - TPT might be indicated based on other exposure
+          if (!conviveTB === 'sim' && !isPriorityGroup && sintomas === 'nao' && isPpdPositiveByThreshold) {
+               texto += `💉 Assintomático, sem contato ativo ou grupo prioritário, porém PPD+ (${ppdValor}mm >= ${ppdThreshold}mm). Investigar contato prévio não registrado. Realizar RX para excluir TB ativa. Se RX normal, iniciar TPT.`;
+          }
+
+      }
+      return texto;
+    }
+
+    function salvarOuAtualizarContato() {
+        const casoIndiceId = document.getElementById('contatoCasoIndiceSelect').value;
+        const nome = document.getElementById('contatoNome').value.trim();
+        const idade = +document.getElementById('contatoIdade').value;
+
+        console.log('salvarOuAtualizarContato started. editingContactId:', editingContactId, 'appData.contatos.length BEFORE:', appData.contatos.length);
+
+
+        if (!casoIndiceId) { alert("Selecione um Caso Índice."); return; }
+        if (!nome) { alert("Insira o nome do contato."); return; }
+        if (idade < 0 || isNaN(idade)) { alert("Insira uma idade válida para o contato."); return; }
+
+
+        const conviveTB = document.getElementById('contatoConviveTB').value;
+        const sintomas = document.getElementById('contatoSintomas').value;
+        const hiv = document.getElementById('contatoHIV').value;
+        const isCarceraria = document.getElementById('contatoCarceraria').checked;
+        const isProfSaude = document.getElementById('contatoProfSaude').checked;
+        const isImunossuprimido = document.getElementById('contatoImunossuprimido').checked;
+        const ppdRealizado = document.getElementById('contatoPPDRealizado').checked;
+        const ppdResultado = ppdRealizado ? document.getElementById('contatoPPDResultado').value : "";
+         const ppdValorInput = document.getElementById('contatoPPDValor');
+         const ppdValor = ppdRealizado && ppdValorInput.value !== '' ? +ppdValorInput.value : null;
+
+        const rxFeito = document.getElementById('contatoRXFeito').checked;
+        const rxResultado = rxFeito ? document.getElementById('contatoRXResultado').value : "";
+        const tptIniciado = document.getElementById('contatoTPTIniciado').checked;
+        const tptCompletado = document.getElementById('contatoTPTCompletado').checked;
+         const tptRegime = document.getElementById('contatoTptRegime').value;
+         const outcome = document.getElementById('contatoDesfecho').value;
+
+        // Get current TPT TDO status from form (which reflects loaded data + user changes + added months)
+        const currentTptTdoStatus = getTptTdoCheckboxesStatus();
+
+        // Determine initial evaluation based on the collected data
+        const avaliacaoInicial = avaliarRiscoContatoInterno(idade, conviveTB, sintomas, hiv, isCarceraria, isProfSaude, isImunossuprimido, ppdRealizado, ppdResultado, ppdValor);
+        document.getElementById('resultadoAvaliacaoContato').innerHTML = `<strong>Avaliação Sugerida:</strong> ${avaliacaoInicial}`;
+
+
+        const contatoData = {
+            casoIndiceId, nome, idade, conviveTB, sintomas, hiv,
+            isCarceraria, isProfSaude, isImunossuprimido,
+            ppdRealizado, ppdResultado, ppdValor,
+            rxFeito, rxResultado,
+            tptIniciado, tptCompletado,
+            tptTdoMeses: currentTptTdoStatus, // Use the current state from the form
+             tptRegime,
+             outcome,
+            avaliacaoInicial: avaliacaoInicial, // Save the generated evaluation
+            tptFollowUps: [] // Will be overwritten with existing array if editing
+        };
+
+        if (editingContactId) {
+             console.log("Editing contact with ID:", editingContactId);
+            const index = appData.contatos.findIndex(c => c.id === editingContactId);
+            if (index > -1) {
+                 // Preserve existing tptFollowUps array when updating
+                contatoData.tptFollowUps = appData.contatos[index].tptFollowUps || [];
+                // Perform the update, replacing the old object at the found index
+                appData.contatos[index] = { ...appData.contatos[index], ...contatoData };
+                alert("Contato atualizado com sucesso!");
+            } else {
+                 // This case should ideally not happen if editingContactId is managed correctly
+                console.error("Editing Contact ID not found in appData.contatos:", editingContactId);
+                alert("Erro: Contato para edição não encontrado. Limpando formulário.");
+                editingContactId = null; // Reset state if not found
+                limparFormularioContato();
+                return;
+            }
+        } else { // Adding new contact
+            console.log("Adding new contact.");
+             // Check for duplicate contact name under the same case index BEFORE adding
+             if(appData.contatos.find(c => c.casoIndiceId === casoIndiceId && c.nome.toLowerCase() === nome.toLowerCase())){
+                 alert(`Já existe um contato com o nome "${nome}" registrado para este Caso Índice.`);
+                 return; // Stop the save process
+             }
+            const novoContato = { id: generateId(), ...contatoData };
+            appData.contatos.push(novoContato); // Add the new contact
+            alert("Contato salvo com sucesso!");
+        }
+        saveAppData(); // Save to localStorage
+        updateAggregatedDataAndCharts(); // Update charts and pending actions
+        renderPainelContatosLaterais(casoIndiceId); // Update the side panel
+        renderizarCascataIndividual(); // Update the individual cascade view if visible
+
+        // After saving/updating, if TPT is initiated, make the follow-up button visible
+         if(contatoData.tptIniciado){
+              document.getElementById('btnAbrirTptFollowUpModal').classList.remove('hidden');
+         } else {
+             document.getElementById('btnAbrirTptFollowUpModal').classList.add('hidden');
+         }
+        // Keep the form filled for further editing after saving if it was an edit operation
+        // If it was a new contact, clear the form
+        if (!editingContactId) {
+            limparFormularioContato();
+        } else {
+             // Re-load the contact data just saved to ensure form reflects the latest saved state
+            // This also re-sets the editingContactId variable
+            loadContactForEditing(editingContactId);
+        }
+
+         console.log('salvarOuAtualizarContato finished. editingContactId:', editingContactId, 'appData.contatos.length AFTER:', appData.contatos.length);
+    }
+
+    // --- Aggregated Charts & Recommendations ---
+    function updateAggregatedDataAndCharts() {
+        console.log("Updating aggregated data and charts...");
+         // Recalculate the number of contacts needing TPT based on current criteria and exclusion
+         const contatosElegiveisTPT = appData.contatos.filter(c => {
+             // Must have been evaluated (at least PPD or RX done/pending if indicated) AND active TB excluded
+             const activeTBExcluded = c.rxFeito && (c.rxResultado === 'normal' || c.rxResultado === 'alterado_outros');
+             const isPriorityGroup = (c.idade < 5) || (c.hiv === 'sim') || c.isCarceraria || c.isProfSaude || c.isImunossuprimido;
+
+             if (c.conviveTB === 'sim' && c.sintomas === 'nao') { // Asymptomatic contact of active TB
+                 if (isPriorityGroup && activeTBExcluded) return true; // Priority Group + Active TB Excluded
+                 const ppdThreshold = isPriorityGroup ? 5 : 10; // Use correct threshold
+                 if (!isPriorityGroup && c.ppdRealizado && c.ppdResultado === 'positivo' && c.ppdValor !== null && c.ppdValor >= ppdThreshold && activeTBExcluded) return true; // Non-Priority + PPD+ + Active TB Excluded
+             }
+             // Add other scenarios if TPT is indicated even without contact with CURRENT CI's TB
+              if (!c.conviveTB === 'sim' && isPriorityGroup && c.sintomas === 'nao' && activeTBExcluded) return true; // Priority group, no contact with current CI, but active TB excluded (assume prior contact confirmation elsewhere)
+              if (!c.conviveTB === 'sim' && !isPriorityGroup && c.sintomas === 'nao' && c.ppdRealizado && c.ppdResultado === 'positivo' && c.ppdValor !== null && c.ppdValor >= 10 && activeTBExcluded) return true; // Non-priority, no contact with current CI, PPD+ (>=10mm), active TB excluded
+
+             return false; // Not elegible based on current criteria
+         }).length;
+
+
+        const dadosAgregados = {
+            casos: appData.casosIndice.length,
+             contatosIdentificadosManuais: appData.casosIndice.reduce((sum, ci) => sum + (ci.totalContatosIdentificados || 0), 0), // Sum manual counts
+            contatosRegistrados: appData.contatos.length, // Count contacts actually entered
+            ppdRealizado: appData.contatos.filter(c => c.ppdRealizado).length,
+            rxFeito: appData.contatos.filter(c => c.rxFeito).length,
+            tptInicio: appData.contatos.filter(c => c.tptIniciado).length,
+            tptCompleto: appData.contatos.filter(c => c.outcome === 'tpt_completo').length,
+            tptRegimenes: appData.contatos.reduce((acc, c) => {
+                if (c.tptIniciado && c.tptRegime) {
+                    acc[c.tptRegime] = (acc[c.tptRegime] || 0) + 1;
+                } else if (c.tptIniciado) { // Count initiated but regimen not specified
+                     acc['Não especificado'] = (acc['Não especificado'] || 0) + 1;
+                }
+                return acc;
+            }, {}),
+             outcomes: appData.contatos.reduce((acc, c) => {
+                if (c.outcome && c.outcome !== "") {
+                    acc[formatResultado(c.outcome, 'desfecho_contato')] = (acc[formatResultado(c.outcome, 'desfecho_contato')] || 0) + 1;
+                } else {
+                     acc['Em Andamento / Em Avaliação'] = (acc['Em Andamento / Em Avaliação'] || 0) + 1;
+                }
+                return acc;
+             }, {}),
+             contatosElegiveisTPT: contatosElegiveisTPT // Add calculated eligible count
+        };
+        atualizarGraficoAgregado(dadosAgregados);
+        gerarRecomendacoesAgregadas(dadosAgregados);
+         renderAcoesPendentesList(); // Ensure pending actions are updated
+    }
+    function atualizarGraficoAgregado(d) {
+        console.log("Updating chart with data:", d);
+      // Dynamically choose which contact number to display in the chart
+       const contactsCount = d.contatosIdentificadosManuais > 0 ? d.contatosIdentificadosManuais : d.contatosRegistrados;
+
+        // Add Eligible TPT to the chart data
+      const data = [d.casos, contactsCount, d.ppdRealizado, d.rxFeito, d.contatosElegiveisTPT, d.tptInicio, d.tptCompleto];
+      const labels = ["Casos índice", "Contatos Identificados", "PPD Realizado", "RX Feito", "Elegíveis TPT", "TPT Iniciado", "TPT Completado"]; // Labels adjusted
+
+      if (chart) chart.destroy();
+      chart = new Chart(ctx, {
+        type: 'bar',
+        data: { labels, datasets: [{ label: 'Nº de Pessoas/Eventos', backgroundColor: '#0d9488', data }] },
+        options: { scales: { y: { beginAtZero: true, suggestedMax: Math.max(...data, 10) + 20 } }, responsive: true, maintainAspectRatio: false } // Added responsive options
+      });
+
+        console.log("TPT Initiated by Regimen:", d.tptRegimenes);
+        console.log("Contact Outcomes:", d.outcomes);
+    }
+     // Recommendations based on aggregated data and outcomes
+    function gerarRecomendacoesAgregadas(d) {
+      const ul = document.getElementById('recomendacoes');
+      ul.innerHTML = '';
+
+       const totalIdentified = d.contatosIdentificadosManuais > 0 ? d.contatosIdentificadosManuais : d.contatosRegistrados;
+       const contatosRegistrados = d.contatosRegistrados;
+       const contatosComPPD = d.ppdRealizado;
+       const contatosComRX = d.rxFeito;
+       const contatosTPTIniciado = d.tptInicio;
+       const contatosTPTCompletado = d.tptCompleto;
+       const contatosElegiveisTPT = d.contatosElegiveisTPT;
+
+
+      if (d.casos > 0 && totalIdentified < d.casos * 3) ul.innerHTML += '<li>⚠️ Baixa identificação de contatos por caso índice (meta: ~3-4+ por caso). Reforçar busca ativa.</li>';
+
+        if (contatosRegistrados > 0) {
+             // Heuristic: Are there symptomatic contacts who didn't get RX?
+             const sintomaticosSemRX = appData.contatos.filter(c => c.conviveTB === 'sim' && c.sintomas === 'sim' && !c.rxFeito).length;
+             if(sintomaticosSemRX > 0){
+                  ul.innerHTML += `<li>🔴 Há ${sintomaticosSemRX} contato(s) sintomático(s) de caso de TB ativa sem registro de RX. Realizar RX URGENTE.</li>`;
+             }
+
+             // Heuristic: Are there asymptomatic priority contacts who didn't get RX?
+             const assintomaticosPrioritariosSemRX = appData.contatos.filter(c => {
+                 const isPriority = (c.idade < 5) || (c.hiv === 'sim') || c.isCarceraria || c.isProfSaude || c.isImunossuprimido;
+                 return c.conviveTB === 'sim' && c.sintomas === 'nao' && isPriority && !c.rxFeito;
+             }).length;
+              if(assintomaticosPrioritariosSemRX > 0){
+                   ul.innerHTML += `<li>🔴 Há ${assintomaticosPrioritariosSemRX} contato(s) assintomático(s) de grupo prioritário sem registro de RX. Realizar RX OBRIGATÓRIO.</li>`;
+              }
+
+
+             // Heuristic: Are there asymptomatic non-priority contacts of active TB without PPD?
+            const assintomaticosNaoPrioritariosSemPPD = appData.contatos.filter(c => {
+                 const isPriority = (c.idade < 5) || (c.hiv === 'sim') || c.isCarceraria || c.isProfSaude || c.isImunossuprimido;
+                return c.conviveTB === 'sim' && c.sintomas === 'nao' && !isPriority && !c.ppdRealizado;
+            }).length;
+             if (assintomaticosNaoPrioritariosSemPPD > 0) {
+                  ul.innerHTML += `<li>📌 Há ${assintomaticosNaoPrioritariosSemPPD} contato(s) assintomático(s) sem grupo prioritário (contato de caso ativo) sem registro de PPD. Melhorar taxa de realização de PPD.</li>`;
+             }
+
+
+             // Comparison: Elegíveis vs. Iniciados TPT
+             if (contatosElegiveisTPT > 0 && contatosTPTIniciado < contatosElegiveisTPT * 0.85) {
+                  const diff = contatosElegiveisTPT - contatosTPTIniciado;
+                  ul.innerHTML += `<li>🚦 Há pelo menos ${diff} contatos elegíveis para TPT que ainda não iniciaram. Otimizar início do TPT.</li>`;
+             } else if (contatosElegiveisTPT > 0 && contatosTPTIniciado >= contatosElegiveisTPT * 0.85) {
+                  ul.innerHTML += `<li>✅ Boa taxa de início de TPT entre elegíveis.</li>`;
+             }
+
+
+       } else {
+            ul.innerHTML += '<li>Inicie registrando Casos Índice e seus Contatos.</li>';
+       }
+
+        // Outcome analysis
+       const outcomes = d.outcomes;
+       const totalOutcomesReported = Object.keys(outcomes).reduce((sum, key) => key !== 'Em Andamento / Em Avaliação' ? sum + outcomes[key] : sum, 0);
+
+       if (contatosTPTIniciado > 0 && totalOutcomesReported < contatosTPTIniciado * 0.85 && outcomes['TPT Completado'] / contatosTPTIniciado < 0.85) {
+            ul.innerHTML += '<li>📉 Reforçar adesão para completar TPT (meta >85%). Monitorar TDO e acompanhamento.</li>';
+       }
+       if ((outcomes['Perdido de Seguimento'] || 0) > (contatosRegistrados * 0.05)) ul.innerHTML += `<li>⚠️ Alta taxa de contatos perdidos de seguimento (${(outcomes['Perdido de Seguimento'] || 0)}). Implementar busca ativa.</li>`;
+       if ((outcomes['Interrompeu TPT (Evento Adverso)'] || 0) > 0) ul.innerHTML += `<li>🚑 Contatos interromperam TPT por eventos adversos (${(outcomes['Interrompeu TPT (Evento Adverso)'] || 0)}). Revisar manejo de EAs.</li>`;
+       if ((outcomes['Desenvolveu TB Ativa'] || 0) > 0) ul.innerHTML += `<li>❗ ${(outcomes['Desenvolveu TB Ativa'] || 0)} contato(s) desenvolveu(ram) TB ativa. Avaliar processo de investigação e elegibilidade para TPT.</li>`;
+
+        // Case Index outcomes needing attention
+         const cisPerdidos = appData.casosIndice.filter(ci => ci.acompanhamentoTB && ci.acompanhamentoTB.resultadoTratamento === 'perdido_seguimento').length;
+         if (cisPerdidos > 0) ul.innerHTML += `<li>🔴 Há ${cisPerdidos} Caso(s) Índice perdido(s) de seguimento de TB ativa. Realizar busca ativa.</li>`;
+
+         const cisFalha = appData.casosIndice.filter(ci => ci.acompanhamentoTB && ci.acompanhamentoTB.resultadoTratamento === 'falha_terapeutica').length;
+          if (cisFalha > 0) ul.innerHTML += `<li>🔴 Há ${cisFalha} Caso(s) Índice com FALHA TERAPÊUTICA. Investigar e reavaliar caso.</li>`;
+
+
+      if (ul.innerHTML === '') ul.innerHTML = '<li>✅ Nenhum gargalo crítico evidente com base nas metas gerais. Continue o bom trabalho!</li>';
+    }
+
+    // Function to render the list of pending actions
+    function renderAcoesPendentesList() {
+        console.log("Rendering pending actions list...");
+        const ul = document.getElementById('listaAcoesPendentes');
+        ul.innerHTML = '';
+        let pendingCount = 0;
+
+        appData.contatos.forEach(contato => {
+            // Skip if a final outcome is already set other than 'em_andamento'
+            if (contato.outcome && contato.outcome !== "" && contato.outcome !== "em_andamento") {
+                 return;
+            }
+
+            const acaoInfo = determinarAcaoPendente(contato); // This returns HTML with spans
+            // Check if the determined action indicates something is pending (heuristic based on the generated span class)
+             if (acaoInfo.includes('pending-action') || acaoInfo.includes('conduta-alerta') || acaoInfo.includes('conduta-urgente')) {
+                 pendingCount++;
+                 const li = document.createElement('li');
+                 // Find the Case Index name for display
+                 const casoIndice = appData.casosIndice.find(ci => ci.id === contato.casoIndiceId);
+                 const ciName = casoIndice ? casoIndice.nome : 'N/I';
+                 li.innerHTML = `<strong>${contato.nome}</strong> (CI: ${ciName}) - ${acaoInfo}`;
+                 // Apply color based on severity span class in the HTML string
+                 if (acaoInfo.includes('conduta-urgente')) li.style.color = '#B91C1C'; // Urgent
+                 else if (acaoInfo.includes('conduta-alerta')) li.style.color = '#D97706'; // Alert
+                 else li.style.color = '#dc3545'; // Default pending action color
+
+                 ul.appendChild(li);
+             }
+
+             // Add specific alerts for TPT follow-up needed if TPT is started and not completed/ended
+             if (contato.tptIniciado && contato.outcome === "") {
+                  const sortedFollowUps = (contato.tptFollowUps || []).slice().sort((a, b) => new Date(b.data) - new Date(a.data));
+                  const lastFollowUp = sortedFollowUps.length > 0 ? sortedFollowUps[0] : null;
+
+                   // Calculate expected number of follow-ups (simplistic: 1 per month of regime)
+                   let expectedFollowUps = 0;
+                   if (contato.tptRegime === '6H') expectedFollowUps = 6;
+                   else if (contato.tptRegime === '3HP' || contato.tptRegime === '3HR') expectedFollowUps = 3;
+                   else if (contato.tptRegime === '4R') expectedFollowUps = 4;
+                   // For 'outro' or '', we don't know the expected number, skip check based on total count
+
+                   const totalRecordedFollowUps = (contato.tptFollowUps || []).length;
+                   const needsMoreFollowUps = expectedFollowUps > 0 && totalRecordedFollowUps < expectedFollowUps;
+
+
+                   if (!lastFollowUp) {
+                        // If TPT started but no follow-ups recorded yet
+                       pendingCount++;
+                        const li = document.createElement('li');
+                        const casoIndice = appData.casosIndice.find(ci => ci.id === contato.casoIndiceId);
+                        const ciName = casoIndice ? casoIndice.nome : 'N/I';
+                        li.innerHTML = `<strong>${contato.nome}</strong> (CI: ${ciName}) - 🟡 TPT iniciado (${contato.tptRegime || 'Regime N/I'}) mas sem registros de acompanhamento. Iniciar acompanhamento.`;
+                        li.style.color = '#D97706'; // Amber color for alert
+                        ul.appendChild(li);
+                   } else {
+                       // Check if the last follow-up was more than ~1 month ago (basic check) AND TPT is not yet completed
+                       const oneMonthAgo = new Date();
+                       oneMonthAgo.setDate(oneMonthAgo.getDate() - 35); // ~35 days
+
+                       if (new Date(lastFollowUp.data + 'T00:00:00') < oneMonthAgo && contato.outcome === "") {
+                           pendingCount++;
+                            const li = document.createElement('li');
+                            const casoIndice = appData.casosIndice.find(ci => ci.id === contato.casoIndiceId);
+                            const ciName = casoIndice ? casoIndice.nome : 'N/I';
+                            li.innerHTML = `<strong>${contato.nome}</strong> (CI: ${ciName}) - 🟡 Último acompanhamento TPT em ${new Date(lastFollowUp.data + 'T00:00:00').toLocaleDateString('pt-BR')}. Necessita novo acompanhamento.`;
+                            li.style.color = '#D97706'; // Amber color for alert
+                            ul.appendChild(li);
+                       }
+                   }
+
+                  // Check for poor adherence or AEs in recent follow-ups (simple check of the most recent)
+                   if (lastFollowUp) {
+                        if (lastFollowUp.adesao === 'ruim' || lastFollowUp.adesao === 'interrompeu') {
+                             pendingCount++;
+                              const li = document.createElement('li');
+                             const casoIndice = appData.casosIndice.find(ci => ci.id === contato.casoIndiceId);
+                             const ciName = casoIndice ? casoIndice.nome : 'N/I';
+                             li.innerHTML = `<strong>${contato.nome}</strong> (CI: ${ciName}) - 🟠 ATENÇÃO no acompanhamento TPT: Adesão (${formatResultado(lastFollowUp.adesao, 'adesao')}) relatada na última consulta.`;
+                              li.style.color = '#D97706'; // Amber color
+                             ul.appendChild(li);
+                        }
+                        if (lastFollowUp.eventosAdversos && lastFollowUp.eventosAdversos.trim() !== '') {
+                            pendingCount++;
+                              const li = document.createElement('li');
+                             const casoIndice = appData.casosIndice.find(ci => ci.id === contato.casoIndiceId);
+                             const ciName = casoIndice ? ci.nome : 'N/I';
+                             li.innerHTML = `<strong>${contato.nome}</strong> (CI: ${ciName}) - 🟠 ATENÇÃO no acompanhamento TPT: Eventos Adversos relatados recentemente.`;
+                              li.style.color = '#D97706'; // Amber color
+                             ul.appendChild(li);
+                        }
+                   }
+
+             }
+        });
+
+         // Check for Case Index patients with pending actions (e.g., lost to follow-up, failure)
+         appData.casosIndice.forEach(ci => {
+              // Check treatment status for TB
+              if (ci.acompanhamentoTB) {
+                   if (ci.acompanhamentoTB.resultadoTratamento === 'perdido_seguimento') {
+                       pendingCount++;
+                        const li = document.createElement('li');
+                        li.innerHTML = `<strong>Caso Índice ${ci.nome}</strong> - 🔴 Perdido de seguimento do tratamento de TB ativa. Realizar busca ativa.`;
+                        li.style.color = '#B91C1C'; // Urgent color
+                        ul.appendChild(li);
+                  } else if (ci.acompanhamentoTB.resultadoTratamento === 'falha_terapeutica') {
+                       pendingCount++;
+                        const li = document.createElement('li');
+                        li.innerHTML = `<strong>Caso Índice ${ci.nome}</strong> - 🔴 FALHA TERAPÊUTICA do tratamento de TB ativa. Investigar e reavaliar caso.`;
+                         li.style.color = '#B91C1C'; // Urgent color
+                        ul.appendChild(li);
+                  } else if (ci.acompanhamentoTB.resultadoTratamento === "") { // If still in treatment
+                       const consultas = (ci.acompanhamentoTB.consultas || []).slice().sort((a,b) => new Date(b.dataConsulta) - new Date(a.dataConsulta));
+                       const ultimaConsulta = consultas.length > 0 ? consultas[0] : null;
+                       const dataInicio = ci.acompanhamentoTB.tratamentoIniciadoEm;
+
+                       if (dataInicio && ultimaConsulta) {
+                            const mesAtualTratamento = calcularMesTratamento(dataInicio, new Date().toISOString().split('T')[0]);
+                            const mesUltimaConsulta = calcularMesTratamento(dataInicio, ultimaConsulta.dataConsulta);
+
+                            // Alert if last consultation is overdue (~> 35 days since last or since start if no consultations)
+                            const lastConsultationDate = new Date(ultimaConsulta.dataConsulta + 'T00:00:00');
+                            const thirtyFiveDaysAgo = new Date();
+                            thirtyFiveDaysAgo.setDate(thirtyFiveDaysAgo.getDate() - 35);
+
+                            if (lastConsultationDate < thirtyFiveDaysAgo) {
+                                pendingCount++;
+                                const li = document.createElement('li');
+                                li.innerHTML = `<strong>Caso Índice ${ci.nome}</strong> - 🟡 Tratamento TB ativa (Mês ${mesAtualTratamento}). Última consulta em ${new Date(ultimaConsulta.dataConsulta + 'T00:00:00').toLocaleDateString('pt-BR')}. Consulta de seguimento pendente.`;
+                                li.style.color = '#D97706';
+                                ul.appendChild(li);
+                            }
+
+                            // Alert if 2-month baciloscopy is missing or positive
+                             if (mesAtualTratamento >= 2) { // Check if we are at or past the 2nd month mark
+                                  const consultaMes2 = consultas.find(c => calcularMesTratamento(dataInicio, c.dataConsulta) >= 2); // Find a consultation at or after month 2
+                                  if (!consultaMes2 || (consultaMes2.baciloscopiaResultado === "" || consultaMes2.baciloscopiaResultado === 'nao_realizada' || consultaMes2.baciloscopiaResultado === 'aguardando')) {
+                                       pendingCount++;
+                                        const li = document.createElement('li');
+                                        li.innerHTML = `<strong>Caso Índice ${ci.nome}</strong> - 🟠 Tratamento TB ativa (Mês ${mesAtualTratamento}). Baciloscopia de controle do 2º mês pendente ou aguardando resultado.`;
+                                        li.style.color = '#D97706';
+                                        ul.appendChild(li);
+                                  } else if (consultaMes2.baciloscopiaResultado.startsWith('positiva')) {
+                                        pendingCount++;
+                                        const li = document.createElement('li');
+                                        li.innerHTML = `<strong>Caso Índice ${ci.nome}</strong> - 🔴 Tratamento TB ativa (Mês ${mesAtualTratamento}). Baciloscopia positiva no 2º mês. Reavaliar caso.`;
+                                        li.style.color = '#B91C1C';
+                                        ul.appendChild(li);
+                                  }
+                             }
+                             // Alert if final baciloscopy is missing or positive (simplified check for month >= 5 or 6)
+                             if (mesAtualTratamento >= 5) { // Check if we are at or past the 5th month mark
+                                 const consultaMes5OuMais = consultas.find(c => calcularMesTratamento(dataInicio, c.dataConsulta) >= 5); // Find a consultation at or after month 5
+                                 if (!consultaMes5OuMais || (consultaMes5OuMais.baciloscopiaResultado === "" || consultaMes5OuMais.baciloscopiaResultado === 'nao_realizada' || consultaMes5OuMais.baciloscopiaResultado === 'aguardando')){
+                                      pendingCount++;
+                                       const li = document.createElement('li');
+                                       li.innerHTML = `<strong>Caso Índice ${ci.nome}</strong> - 🟠 Tratamento TB ativa (Mês ${mesAtualTratamento}). Baciloscopia de controle final pendente ou aguardando resultado.`;
+                                       li.style.color = '#D97706';
+                                       ul.appendChild(li);
+                                 } else if (consultaMes5OuMais.baciloscopiaResultado.startsWith('positiva')) {
+                                      pendingCount++;
+                                      const li = document.createElement('li');
+                                      li.innerHTML = `<strong>Caso Índice ${ci.nome}</strong> - 🔴 Tratamento TB ativa (Mês ${mesAtualTratamento}). Baciloscopia positiva no final do tratamento. Investigar falha.`;
+                                      li.style.color = '#B91C1C';
+                                      ul.appendChild(li);
+                                 }
+                             }
+
+                             // Check for poor adherence or AEs in the latest TB consultation
+                              if (ultimaConsulta.adesao === 'ruim') {
+                                   pendingCount++;
+                                    const li = document.createElement('li');
+                                    li.innerHTML = `<strong>Caso Índice ${ci.nome}</strong> - 🟠 Tratamento TB ativa (Mês ${mesAtualTratamento}). Última consulta com adesão ruim. Reforçar suporte.`;
+                                    li.style.color = '#D97706';
+                                    ul.appendChild(li);
+                              }
+                             if (ultimaConsulta.efeitosAdversos && ultimaConsulta.efeitosAdversos.trim() !== '') {
+                                   pendingCount++;
+                                    const li = document.createElement('li');
+                                    li.innerHTML = `<strong>Caso Índice ${ci.nome}</strong> - 🟠 Tratamento TB ativa (Mês ${mesAtualTratamento}). Última consulta com Efeitos Adversos relatados. Manejar.`;
+                                    li.style.color = '#D97706';
+                                    ul.appendChild(li);
+                             }
+                             if (ultimaConsulta.rxControleResultado === "piora" || ultimaConsulta.rxControleResultado === "sugestivo_tb_ativa") {
+                                  pendingCount++;
+                                  const li = document.createElement('li');
+                                  li.innerHTML = `<strong>Caso Índice ${ci.nome}</strong> - 🔴 Tratamento TB ativa (Mês ${mesAtualTratamento}). RX de Controle com piora ou sugestivo de TB ativa. Investigar falha.`;
+                                  li.style.color = '#B91C1C';
+                                  ul.appendChild(li);
+                             }
+
+
+                       } else if (dataInicio && !ultimaConsulta) {
+                            // Alert if treatment started but no consultations recorded
+                            const mesAtualTratamento = calcularMesTratamento(dataInicio, new Date().toISOString().split('T')[0]);
+                             if (mesAtualTratamento >= 1) {
+                                 pendingCount++;
+                                  const li = document.createElement('li');
+                                  li.innerHTML = `<strong>Caso Índice ${ci.nome}</strong> - 🟡 Tratamento TB ativa (Mês ${mesAtualTratamento}). Tratamento iniciado mas sem consultas de seguimento registradas. Agendar 1ª consulta.`;
+                                  li.style.color = '#D97706';
+                                  ul.appendChild(li);
+                             }
+                       }
+                  }
+              }
+         });
+
+
+        if (pendingCount === 0) {
+            ul.innerHTML = '<li>✅ Nenhuma ação pendente ou paciente que requer atenção especial identificada.</li>';
+             ul.style.color = '#198754'; // Green color
+        } else {
+             ul.style.color = 'inherit'; // Reset color if there are pending items
+        }
+    }
+
+
+    // Modified determinarAcaoPendente to include new risk factors, PPD value, Regimen, Outcome and Follow-up status
+    function determinarAcaoPendente(contato) {
+        // If a final outcome is set, the cascade is complete for this contact's TPT path
+        if (contato.outcome && contato.outcome !== "" && contato.outcome !== "em_andamento") {
+             let outcomeText = formatResultado(contato.outcome, 'desfecho_contato');
+             if (contato.outcome === 'tpt_completo') return `<span class="completed-action">Desfecho: ${outcomeText}.</span>`;
+             if (contato.outcome === 'desenvolveu_tb') return `<span class="pending-action">Desfecho: ${outcomeText}. Necessita manejo de TB ativa.</span>`; // This case is critical
+             if (contato.outcome === 'perdido_seguimento') return `<span class="pending-action">Desfecho: ${outcomeText}. Necessita BUSCA ATIVA.</span>`; // This case is critical
+             if (contato.outcome.startsWith('interrompeu')) return `<span class="conduta-alerta">Desfecho: ${outcomeText}. Reavaliar caso.</span>`; // This case is important
+              if (contato.outcome === 'recusou_tpt') return `<span class="conduta-alerta">Desfecho: ${outcomeText}. Registrar e monitorar surgimento de sintomas.</span>`;
+             return `<span class="conduta-info">Desfecho: ${outcomeText}.</span>`; // Other final outcomes
+        }
+
+        // If outcome is 'em_andamento', proceed with cascade evaluation
+        const isPriorityGroup = (contato.idade < 5) || (contato.hiv === 'sim') || contato.isCarceraria || contato.isProfSaude || contato.isImunossuprimido;
+
+        // Determine PPD positivity threshold based on risk factors
+        let ppdThreshold = 10; // Default for non-priority groups (age >= 5 and not other priority factors)
+        if (isPriorityGroup) {
+            ppdThreshold = 5; // Lower threshold for high-risk groups
+        }
+        const isPpdPositiveByThreshold = contato.ppdRealizado && contato.ppdResultado === 'positivo' && contato.ppdValor !== null && contato.ppdValor >= ppdThreshold;
+        const isPpdNegativeByThreshold = contato.ppdRealizado && contato.ppdResultado === 'negativo'; // Simple negative based on result dropdown
+        const isPpdAguardando = contato.ppdRealizado && contato.ppdResultado === 'aguardando';
+
+
+        // Status of diagnostic steps
+        const ppdDone = contato.ppdRealizado;
+        const rxDone = contato.rxFeito;
+        const rxAguardando = rxDone && contato.rxResultado === 'aguardando';
+        const rxSugestivoTb = rxDone && contato.rxResultado === 'sugestivo_tb';
+        const rxNormalOrOther = rxDone && (contato.rxResultado === 'normal' || contato.rxResultado === 'alterado_outros');
+
+        // 1. Prioritize investigation for Active TB
+        if (contato.conviveTB === 'sim' && contato.sintomas === 'sim') {
+             if (!rxDone || rxAguardando) return '<span class="pending-action">Pendente: RX URGENTE + TRM/Bacilo/Cultura (sintomático respiratório, contato TB ativo).</span>';
+             if (rxSugestivoTb) return '<span class="pending-action">Pendente: RX sugestivo TB ativa. Investigar/Iniciar tratamento para TB ATIVA.</span>';
+              if (rxNormalOrOther) {
+                 // Sintomatico com RX normal/outros - TB ativa excluída. Se grupo prioritário, TPT indicado. Outros: investigar outras causas.
+                 if (isPriorityGroup) return '<span class="pending-action">Pendente: Excluída TB ativa (RX normal/outros). ⭐ Contato de grupo prioritário. Iniciar TPT.</span>';
+                 else return '<span class="conduta-info">Excluída TB ativa (RX normal/outros). Sintomático, sem grupo prioritário. Investigar outras causas. Avaliar TPT conforme PPD se contato prévio.</span>'; // Note: PPD might not be needed here as TPT indication is weak
+             }
+        }
+
+        // 2. Evaluate for TPT indication after ruling out active TB (or if active TB is unlikely - assymptomatic)
+         if (contato.conviveTB === 'sim' && contato.sintomas === 'nao') { // Assintomático, contato TB ativo
+            if (isPriorityGroup) { // Assintomático, contato TB ativo, grupo prioritário
+                 if (!rxDone || rxAguardando) return '<span class="pending-action">Pendente: Realizar RX (OBRIGATÓRIO para excluir TB ativa em grupo prioritário assintomático).</span>';
+                 if (rxSugestivoTb) return '<span class="pending-action">Pendente: RX sugestivo TB ativa. Investigar/Tratar TB Ativa.</span>';
+                 if (rxNormalOrOther) { // TB ativa excluída
+                      if (!contato.tptIniciado) return '<span class="pending-action">Pendente: Excluída TB ativa (RX normal/outros). ⭐ Contato de grupo prioritário. Iniciar TPT.</span>';
+                 }
+
+            } else { // Assintomático, contato TB ativo, sem ser grupo prioritário (>= 5a e sem os outros fatores)
+                 if (!ppdDone) return '<span class="pending-action">Pendente: Realizar PPD.</span>';
+                 if (isPpdAguardando) return '<span class="pending-action">Pendente: Aguardando resultado do PPD.</span>';
+                 if (isPpdNegativeByThreshold) return '<span class="conduta-info">PPD Negativo (<${ppdThreshold}mm). Monitorar. Sem indicação primária de TPT por este critério.</span>'; // Note the dynamic threshold
+                 if (isPpdPositiveByThreshold) { // PPD+
+                     if (!rxDone || rxAguardando) return '<span class="pending-action">Pendente: Realizar RX (PPD positivo).</span>';
+                      if (rxSugestivoTb) return '<span class="pending-action">Pendente: RX sugestivo TB ativa. Investigar/Tratar TB Ativa.</span>';
+                      if (rxNormalOrOther) { // TB ativa excluída
+                        if (!contato.tptIniciado) return '<span class="pending-action">Pendente: Iniciar TPT (PPD Positivo, RX sem TB ativa).</span>';
+                     }
+                 }
+            }
+         }
+         // Check if contact is from a priority group or PPD+ even without contact to the *current* CI's active TB
+         if (!contato.conviveTB === 'sim' && contato.sintomas === 'nao') { // Assintomático, sem contato com TB ativa DESTE CI
+              if (isPriorityGroup) { // Grupo prioritário, assintomático, sem contato com este CI
+                   if (!rxDone || rxAguardando) return '<span class="conduta-info">⭐ Contato de grupo prioritário, sem contato com TB ativa (deste CI). Realizar RX para excluir TB ativa se contato prévio for confirmado. Monitorar.</span>'; // Suggest RX only if prior contact confirmed
+                    if (rxNormalOrOther) {
+                        if (!contato.tptIniciado) return '<span class="conduta-info">⭐ Contato de grupo prioritário, sem contato com TB ativa (deste CI), RX normal. Avaliar TPT se contato prévio confirmado.</span>';
+                    }
+              } else if (!isPriorityGroup && isPpdPositiveByThreshold) { // Sem grupo prioritário, PPD+ (>=10mm), sem contato com este CI
+                   if (!rxDone || rxAguardando) return '<span class="pending-action">Pendente: PPD+ (${contato.ppdValor}mm), sem contato com TB ativa (deste CI), sem grupo prioritário. Realizar RX para excluir TB ativa e investigar fonte.</span>';
+                    if (rxSugestivoTb) return '<span class="pending-action">Pendente: PPD+, RX sugestivo TB ativa. Investigar/Tratar TB Ativa.</span>';
+                    if (rxNormalOrOther) {
+                        if (!contato.tptIniciado) return '<span class="pending-action">Pendente: PPD+ (${contato.ppdValor}mm), RX normal. Iniciar TPT (investigar fonte).</span>';
+                    }
+              } else {
+                   // Assintomático, sem contato com este CI, sem grupo prioritário, PPD negativo
+                    return '<span class="conduta-info">Assintomático, sem contato TB ativa (deste CI) ou fatores de risco prioritários, PPD negativo. Monitorar.</span>';
+              }
+         }
+
+
+         // 3. TPT progression (if started and outcome is 'em_andamento')
+         if (contato.tptIniciado && contato.outcome === "em_andamento") {
+              const mesesTDO = contato.tptTdoMeses ? contato.tptTdoMeses.filter(status => status).length : 0;
+              const totalMesesPrevistos = contato.tptTdoMeses ? contato.tptTdoMeses.length : (contato.tptRegime === '6H' ? 6 : (contato.tptRegime === '3HP' || contato.tptRegime === '3HR' ? 3 : (contato.tptRegime === '4R' ? 4 : 0)));
+
+              if (mesesTDO < totalMesesPrevistos) { // If TPT is still ongoing based on recorded TDO
+                   const sortedFollowUps = (contato.tptFollowUps || []).slice().sort((a, b) => new Date(b.data) - new Date(a.data));
+                    const lastFollowUp = sortedFollowUps.length > 0 ? sortedFollowUps[0] : null;
+
+                    if (!lastFollowUp) {
+                        return `<span class="pending-action">Pendente: Completar TPT (${contato.tptRegime || 'Regime N/I'}, ${mesesTDO}/${totalMesesPrevistos}m TDO). Iniciar acompanhamento TPT.</span>`;
+                    } else {
+                        const oneMonthAgo = new Date();
+                        oneMonthAgo.setDate(oneMonthAgo.getDate() - 35); // ~35 days
+
+                        if (new Date(lastFollowUp.data + 'T00:00:00') < oneMonthAgo) {
+                             return `<span class="pending-action">Pendente: Completar TPT (${contato.tptRegime || 'Regime N/I'}, ${mesesTDO}/${totalMesesPrevistos}m TDO). Último acompanhamento em ${new Date(lastFollowUp.data + 'T00:00:00').toLocaleDateString('pt-BR')}. Necessita novo acompanhamento.</span>`;
+                        } else {
+                             // Check for recent adherence issues or AEs in the latest TPT follow-up
+                             if (lastFollowUp.adesao === 'ruim' || lastFollowUp.adesao === 'interrompeu' || (lastFollowUp.eventosAdversos && lastFollowUp.eventosAdversos.trim() !== '')) {
+                                 return `<span class="conduta-alerta">ATENÇÃO: TPT em andamento (${mesesTDO}/${totalMesesPrevistos}m TDO). Último acompanhamento (${new Date(lastFollowUp.data + 'T00:00:00').toLocaleDateString('pt-BR')}) com adesão ruim/interrupção ou EAs. Monitorar de perto.</span>`;
+                             } else {
+                                return `<span class="conduta-normal">TPT em andamento (${contato.tptRegime || 'Regime N/I'}, ${mesesTDO}/${totalMesesPrevistos}m TDO). Manter acompanhamento regular.</span>`;
+                             }
+                        }
+                    }
+               } else if (mesesTDO >= totalMesesPrevistos && totalMesesPrevistos > 0) {
+                     // TDO months meet or exceed expected duration, but outcome is still 'em_andamento'
+                     return `<span class="pending-action">Pendente: TPT iniciado (${contato.tptRegime || 'Regime N/I'}). TDO registrado em ${mesesTDO} ${mesesTDO === 1 ? 'mês' : 'meses'}. Avaliar conclusão do TPT e registrar desfecho.</span>`;
+               } else {
+                    // TPT started, but regime not specified or TDO not tracked consistently with regime length
+                     if (contato.tptFollowUps && contato.tptFollowUps.length > 0) {
+                        const sortedFollowUps = (contato.tptFollowUps || []).slice().sort((a, b) => new Date(b.data) - new Date(a.data));
+                         const lastFollowUp = sortedFollowUps[0];
+                         const oneMonthAgo = new Date();
+                         oneMonthAgo.setDate(oneMonthAgo.getDate() - 35);
+
+                         if (new Date(lastFollowUp.data + 'T00:00:00') < oneMonthAgo) {
+                              return `<span class="pending-action">Pendente: TPT iniciado (${contato.tptRegime || 'Regime N/I'}). Último acompanhamento em ${new Date(lastFollowUp.data + 'T00:00:00').toLocaleDateString('pt-BR')}. Necessita novo acompanhamento.</span>`;
+                         } else {
+                             if (lastFollowUp.adesao === 'ruim' || lastFollowUp.adesao === 'interrompeu' || (lastFollowUp.eventosAdversos && lastFollowUp.eventosAdversos.trim() !== '')) {
+                                  return `<span class="conduta-alerta">ATENÇÃO: TPT em andamento (${contato.tptRegime || 'Regime N/I'}). Último acompanhamento (${new Date(lastFollowUp.data + 'T00:00:00').toLocaleDateString('pt-BR')}) com adesão ruim/interrupção ou EAs. Monitorar de perto.</span>`;
+                             } else {
+                                 return `<span class="conduta-info">TPT em andamento (${contato.tptRegime || 'Regime N/I'}). Manter acompanhamento regular.</span>`;
+                             }
+                         }
+                     } else {
+                          return `<span class="pending-action">Pendente: TPT iniciado (${contato.tptRegime || 'Regime N/I'}) mas sem registros de acompanhamento.</span>`;
+                     }
+               }
+         }
+
+         // 4. Cases where TPT is not initiated but might still need follow-up/monitoring
+         if (contato.conviveTB === 'sim' && contato.sintomas === 'nao' && !isPriorityGroup && isPpdNegativeByThreshold) {
+              // Contact of active TB, asymptomatic, not priority, PPD negative. Requires monitoring.
+               return '<span class="conduta-info">Contato TB ativa, assintomático, sem grupo prioritário, PPD negativo. Monitorar clinicamente.</span>';
+         }
+          if (contato.conviveTB === 'nao' && contato.sintomas === 'sim') return '<span class="conduta-info">Sintomas respiratórios, sem contato TB ativo no momento. Investigar outras causas. Monitorar.</span>';
+
+
+        // Default / Fallback - If none of the above apply, the status is "In Evaluation / Monitor" implicitly or explicitly if outcome is "".
+        // If TPT wasn't initiated and no other specific action is pending, it falls into monitoring.
+        // Check if any diagnostic step is pending
+         if(contato.conviveTB === 'sim' && contato.sintomas === 'nao' && !isPriorityGroup && ppdDone && isPpdPositiveByThreshold && (!rxDone || rxAguardando)){
+              // PPD+ but RX pending - handled above, but as a fallback
+             return '<span class="pending-action">Pendente: PPD Positivo. Realizar RX.</span>';
+         }
+
+
+        return '<span class="conduta-info">Em avaliação / Monitorar.</span>';
+    }
+
+
+    // --- Individual Cascade View ---
+    // Modified renderizarCascataIndividual to display new risk factors, PPD value, Regimen, Outcome and TPT Follow-ups summary
+    function renderizarCascataIndividual() {
+        console.log("Rendering individual cascade...");
+        const casoIndiceId = document.getElementById('cascataIndividualCasoIndiceSelect').value;
+        const container = document.getElementById('cascataIndividualContainer');
+        if (!casoIndiceId) { container.innerHTML = '<p>Selecione um caso índice para ver os detalhes de seus contatos.</p>'; return; }
+        const contatosDoCaso = appData.contatos.filter(c => c.casoIndiceId === casoIndiceId);
+        const casoIndice = appData.casosIndice.find(ci => ci.id === casoIndiceId);
+        if (!casoIndice) { container.innerHTML = '<p>Caso índice não encontrado (pode ter sido removido).</p>'; return; }
+        if (contatosDoCaso.length === 0) { container.innerHTML = `<p>Nenhum contato registrado para: <strong>${casoIndice.nome}</strong>.</p>`; return; }
+        let html = `<h3>Contatos de ${casoIndice.nome}</h3>`;
+
+         // Sort contacts: prioritize pending actions, then by name
+         contatosDoCaso.sort((a, b) => {
+              const acaoA = determinarAcaoPendente(a);
+              const acaoB = determinarAcaoPendente(b);
+              const isPendingA = acaoA.includes('pending-action') || acaoA.includes('conduta-alerta') || acaoA.includes('conduta-urgente');
+              const isPendingB = acaoB.includes('pending-action') || acaoB.includes('conduta-alerta') || acaoB.includes('conduta-urgente');
+
+             if (isPendingA && !isPendingB) return -1; // A comes first if it's pending and B is not
+             if (!isPendingA && isPendingB) return 1; // B comes first if it's pending and A is not
+
+             // If both are pending or neither is pending, sort by name
+             return a.nome.localeCompare(b.nome);
+         });
+
+
+        contatosDoCaso.forEach(contato => {
+            const acaoPendente = determinarAcaoPendente(contato);
+             const riskFactors = [];
+            if (contato.idade < 10) riskFactors.push('Criança < 10a');
+            if (contato.hiv === 'sim') riskFactors.push('PVHIV');
+            if (contato.isCarceraria) riskFactors.push('Carcerária');
+            if (contato.isProfSaude) riskFactors.push('Prof. Saúde');
+            if (contato.isImunossuprimido) riskFactors.push('Imunossuprimido');
+            const riskText = riskFactors.length > 0 ? ` (${riskFactors.join(', ')})` : '';
+
+            let tptStatusText = formatResultado("", 'desfecho_contato'); // Default 'Em Andamento...'
+             if (contato.outcome && contato.outcome !== "") {
+                 tptStatusText = `Desfecho: ${formatResultado(contato.outcome, 'desfecho_contato')}`;
+             } else if (contato.tptIniciado) {
+                 const mesesTDO = contato.tptTdoMeses ? contato.tptTdoMeses.filter(status => status).length : 0;
+                 const totalMesesPrevistos = contato.tptTdoMeses ? contato.tptTdoMeses.length : (contato.tptRegime === '6H' ? 6 : (contato.tptRegime === '3HP' || contato.tptRegime === '3HR' ? 3 : (contato.tptRegime === '4R' ? 4 : 0)));
+
+                 let tdoStatusSummary = 'TDO não registrado';
+                  if (contato.tptTdoMeses && contato.tptTdoMeses.length > 0) {
+                      tdoStatusSummary = contato.tptTdoMeses.map((status, index) =>
+                          status ? `M${index + 1} ✔️` : `M${index + 1} ❌`
+                      ).join(' | ');
+                      // If TPT started but regime wasn't set, just show recorded months
+                       if ((!contato.tptRegime || contato.tptRegime === "") && totalMesesPrevistos === 0) {
+                            tdoStatusSummary = `TDO registrado em ${mesesTDO} meses (${tdoStatusSummary})`;
+                       } else if (totalMesesPrevistos > 0) {
+                             tdoStatusSummary = `TDO: ${mesesTDO}/${totalMesesPrevistos} meses (${tdoStatusSummary})`;
+                       }
+                  }
+
+                 tptStatusText = `TPT Iniciado (${contato.tptRegime || 'Regime N/I'}). ${tdoStatusSummary}`;
+
+             } else {
+                  // TPT not initiated, show current status
+                   tptStatusText = `TPT: ${formatResultado("", 'desfecho_contato')}`; // "Em Andamento / Em Avaliação"
+             }
+
+
+             const tptFollowUpSummary = (contato.tptFollowUps || []).length > 0 ? `Acompanhamentos TPT: ${(contato.tptFollowUps || []).length} registro(s)` : 'Acompanhamentos TPT: Nenhum registrado';
+
+
+            html +=
+                `<div class="contact-cascade-item">
+                    <h4>${contato.nome} (Idade: ${contato.idade}) ${riskText} <button type="button" class="edit-btn" onclick="loadContactForEditing('${contato.id}')">Editar</button></h4>
+                    <p><strong>Avaliação Inicial Sugerida:</strong> ${contato.avaliacaoInicial || 'N/A'}</p>
+                     <div class="cascade-step">Convive com TB ativa: ${contato.conviveTB === 'sim' ? 'Sim' : 'Não'}</div>
+                     <div class="cascade-step">Sintomas respiratórios: ${contato.sintomas === 'sim' ? 'Sim' : 'Não'}</div>
+                    <div class="cascade-step"> PPD: ${contato.ppdRealizado ? `✔️ Realizado (Resultado: ${formatResultado(contato.ppdResultado, 'ppd')}${contato.ppdValor !== null ? `, Valor: ${contato.ppdValor}mm` : ''})` : '❌ Não Realizado'} </div>
+                    <div class="cascade-step"> RX: ${contato.rxFeito ? `✔️ Realizado (Resultado: ${formatResultado(contato.rxResultado, 'rx')})` : '❌ Não Realizado'} </div>
+                    <div class="cascade-step">${tptStatusText}</div>
+                    <div class="cascade-step">${tptFollowUpSummary}</div>
+                    <div class="cascade-step"><strong>Condução:</strong> ${acaoPendente}</div>
+                </div>`;
+        });
+        container.innerHTML = html;
+    }
+
+    // --- MODAL ACOMPANHAMENTO TB (CASE INDEX) FUNCTIONS ---
+    // Renders TB Treatment TDO checkboxes based on a provided array (or default count)
+    function renderCasoIndiceTdoCheckboxes(tdoStatusArray) {
+        const container = document.getElementById('casoIndiceTdoCheckboxes');
+        container.innerHTML = ''; // Clear previous checkboxes
+
+        // Determine number of months based on regime or default
+         let numberOfMonths = DEFAULT_MESES_TB_TRATAMENTO; // Default 6 months
+         const regime = document.getElementById('tbRegimeInicial').value;
+         if (regime === 'RHE') numberOfMonths = 6; // Standard RHE is 6 months
+         // Could add logic here if other regimes (e.g., MDR) are added
+
+        // If saved data has more months than the standard regime, display up to saved length
+        if (tdoStatusArray && tdoStatusArray.length > numberOfMonths) {
+            numberOfMonths = tdoStatusArray.length;
+        }
+
+
+        const monthsToRender = Array(numberOfMonths).fill(false);
+         if (tdoStatusArray && tdoStatusArray.length > 0) {
+              // Use existing status up to the calculated numberOfMonths, pad if necessary
+             for(let i=0; i < Math.min(numberOfMonths, tdoStatusArray.length); i++){
+                  monthsToRender[i] = tdoStatusArray[i];
+             }
+         }
+
+
+        monthsToRender.forEach((isChecked, index) => {
+            const month = index + 1;
+            const label = document.createElement('label');
+            label.innerHTML = `<input type="checkbox" id="casoIndiceTdoMonth${month}" ${isChecked ? 'checked' : ''}> Mês ${month}`;
+            container.appendChild(label);
+        });
+    }
+
+     // Reads the current state of the TB Treatment TDO checkboxes displayed in the modal
+     function getCasoIndiceTdoCheckboxesStatus() {
+        const status = [];
+        const container = document.getElementById('casoIndiceTdoCheckboxes');
+         container.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+             status.push(checkbox.checked);
+         });
+        return status;
+    }
+
+    // Adds one month checkbox to the TB Treatment TDO list in the modal
+    function addCasoIndiceTdoMonth() {
+         const currentStatus = getCasoIndiceTdoCheckboxesStatus();
+         currentStatus.push(false); // Add a new month, unchecked by default
+         renderCasoIndiceTdoCheckboxes(currentStatus); // Re-render with the new month
+    }
+
+
+    function fecharModalAcompanhamento() {
+        console.log("Closing TB Acompanhamento Modal.");
+        document.getElementById('modalAcompanhamentoTB').style.display = 'none';
+        currentAcompanhamentoData = null; // Clear current data
+        document.getElementById('formNovaConsulta').classList.add('hidden');
+        cancelarEdicaoConsulta();
+         // No need to explicitly reset modal checkboxes here, they are re-rendered with data when the modal opens
+    }
+    function abrirModalAcompanhamento(casoIndiceId) {
+        console.log("Opening TB Acompanhamento Modal for CI:", casoIndiceId);
+        const casoIndice = appData.casosIndice.find(ci => ci.id === casoIndiceId);
+        if (!casoIndice) { alert("Caso índice não encontrado."); return; }
+
+        document.getElementById('acompanhamentoCasoIndiceId').value = casoIndiceId;
+        document.getElementById('modalAcompanhamentoTitulo').textContent = `Acompanhamento de Tuberculose (Caso Índice: ${casoIndice.nome})`;
+        currentAcompanhamentoData = JSON.parse(JSON.stringify(casoIndice.acompanhamentoTB || {
+            tratamentoIniciadoEm: '', regimeInicial: 'RHZE', regimeInicialOutro: '',
+            consultas: [], resultadoTratamento: '', dataTermino: '',
+            tdoMeses: []
+        }));
+
+        document.getElementById('tbDataInicioTratamento').value = currentAcompanhamentoData.tratamentoIniciadoEm || '';
+        document.getElementById('tbRegimeInicial').value = currentAcompanhamentoData.regimeInicial || 'RHZE';
+        const regimeOutroInput = document.getElementById('tbRegimeInicialOutro');
+        regimeOutroInput.value = currentAcompanhamentoData.regimeInicialOutro || '';
+        regimeOutroInput.classList.toggle('hidden', currentAcompanhamentoData.regimeInicial !== 'Outro');
+        document.getElementById('tbResultadoFinal').value = currentAcompanhamentoData.resultadoTratamento || '';
+        document.getElementById('tbDataTermino').value = currentAcompanhamentoData.dataTermino || '';
+
+        // Render TDO checkboxes AFTER regime and data are loaded
+        renderCasoIndiceTdoCheckboxes(currentAcompanhamentoData.tdoMeses);
+
+        renderListaConsultasAcompanhamento();
+        calcularEExibirCondutaSugerida();
+        document.getElementById('modalAcompanhamentoTB').style.display = 'block';
+    }
+    function renderListaConsultasAcompanhamento() {
+        const container = document.getElementById('listaConsultasAcompanhamento');
+        container.innerHTML = '';
+        if (!currentAcompanhamentoData || !currentAcompanhamentoData.consultas || currentAcompanhamentoData.consultas.length === 0) {
+            container.innerHTML = '<p>Nenhuma consulta de seguimento registrada.</p>';
+            return;
+        }
+        currentAcompanhamentoData.consultas.sort((a, b) => new Date(a.dataConsulta) - new Date(b.dataConsulta));
+        currentAcompanhamentoData.consultas.forEach((consulta, index) => {
+            const consultaEl = document.createElement('div');
+            consultaEl.classList.add('consulta-acompanhamento-item');
+             // Get month of treatment for this consultation if dataInicio is available
+             const mesTratamento = currentAcompanhamentoData.tratamentoIniciadoEm ?
+                 calcularMesTratamento(currentAcompanhamentoData.tratamentoIniciadoEm, consulta.dataConsulta) : null;
+             const mesText = mesTratamento !== null ? `(Mês ${mesTratamento})` : '';
+
+
+            consultaEl.innerHTML =
+                `<h5>Consulta ${index + 1}: ${new Date(consulta.dataConsulta + 'T00:00:00').toLocaleDateString('pt-BR')} ${mesText}
+                    <div>
+                        <button type="button" class="edit-btn" onclick="editarConsultaAcompanhamento('${consulta.id}')" style="font-size:0.7em; padding:3px 6px;">Editar</button>
+                        <button type="button" class="remove-btn" onclick="removerConsultaAcompanhamento('${consulta.id}')" style="font-size:0.7em; padding:3px 6px;">Remover</button>
+                    </div>
+                </h5>
+                <p><strong>Peso:</strong> ${consulta.pesoKg ? `${consulta.pesoKg} kg` : 'N/A'}</p>
+                <p><strong>Sintomas:</strong> ${consulta.sintomas || 'N/A'}</p>
+                <p><strong>Baciloscopia:</strong> ${formatResultado(consulta.baciloscopiaResultado, 'baciloscopia')}</p>
+                <p><strong>Cultura:</strong> ${formatResultado(consulta.culturaResultado, 'cultura')}</p>
+                <p><strong>RX Controle:</strong> ${formatResultado(consulta.rxControleResultado, 'rx_controle')}</p>
+                <p><strong>Adesão:</strong> ${formatResultado(consulta.adesao, 'adesao')}</p>
+                <p><strong>Efeitos Adversos:</strong> ${consulta.efeitosAdversos || 'N/A'}</p>
+                <p><strong>Observações/Condutas:</strong> ${consulta.observacoes || 'N/A'}</p>
+            `;
+            container.appendChild(consultaEl);
+        });
+    }
+    function adicionarNovaConsultaForm() {
+        document.getElementById('formNovaConsulta').classList.remove('hidden');
+        document.getElementById('formNovaConsultaTitulo').textContent = 'Nova Consulta de Seguimento';
+        document.getElementById('consultaEditId').value = '';
+        document.getElementById('consultaData').value = new Date().toISOString().split('T')[0];
+        document.getElementById('consultaPeso').value = '';
+        document.getElementById('consultaSintomas').value = '';
+        document.getElementById('consultaBaciloscopia').value = '';
+        document.getElementById('consultaCultura').value = '';
+        document.getElementById('consultaRxControle').value = '';
+        document.getElementById('consultaAdesao').value = 'boa';
+        document.getElementById('consultaEfeitosAdversos').value = '';
+        document.getElementById('consultaObservacoes').value = '';
+        document.getElementById('consultaData').focus();
+         // Hide the "Add Consultation" button while the form is open
+         document.querySelector('.modal-body > button.add-followup-btn').classList.add('hidden');
+    }
+    function editarConsultaAcompanhamento(consultaId) {
+        const consulta = currentAcompanhamentoData.consultas.find(c => c.id === consultaId);
+        if (!consulta) return;
+        document.getElementById('formNovaConsulta').classList.remove('hidden');
+         const mesTratamento = currentAcompanhamentoData.tratamentoIniciadoEm ?
+             calcularMesTratamento(currentAcompanhamentoData.tratamentoIniciadoEm, consulta.dataConsulta) : null;
+         const mesText = mesTratamento !== null ? `(Mês ${mesTratamento})` : '';
+        document.getElementById('formNovaConsultaTitulo').textContent = `Editar Consulta (${new Date(consulta.dataConsulta + 'T00:00:00').toLocaleDateString('pt-BR')} ${mesText})`;
+        document.getElementById('consultaEditId').value = consulta.id;
+        document.getElementById('consultaData').value = consulta.dataConsulta;
+        document.getElementById('consultaPeso').value = consulta.pesoKg || '';
+        document.getElementById('consultaSintomas').value = consulta.sintomas || '';
+        document.getElementById('consultaBaciloscopia').value = consulta.baciloscopiaResultado || '';
+        document.getElementById('consultaCultura').value = consulta.culturaResultado || '';
+        document.getElementById('consultaRxControle').value = consulta.rxControleResultado || '';
+        document.getElementById('consultaAdesao').value = consulta.adesao || 'boa';
+        document.getElementById('consultaEfeitosAdversos').value = consulta.efeitosAdversos || '';
+        document.getElementById('consultaObservacoes').value = consulta.observacoes || '';
+        document.getElementById('consultaData').focus();
+         // Hide the "Add Consultation" button while the form is open
+         document.querySelector('.modal-body > button.add-followup-btn').classList.add('hidden');
+    }
+    function removerConsultaAcompanhamento(consultaId) {
+        if (!confirm("Tem certeza que deseja remover esta consulta de seguimento?")) return;
+        currentAcompanhamentoData.consultas = currentAcompanhamentoData.consultas.filter(c => c.id !== consultaId);
+        renderListaConsultasAcompanhamento();
+         calcularEExibirCondutaSugerida();
+    }
+    function cancelarEdicaoConsulta() {
+        document.getElementById('formNovaConsulta').classList.add('hidden');
+        document.getElementById('consultaEditId').value = '';
+         // Show the "Add Consultation" button again
+         document.querySelector('.modal-body > button.add-followup-btn').classList.remove('hidden');
+    }
+    function salvarConsultaAcompanhamento() {
+        const editId = document.getElementById('consultaEditId').value;
+        const consultaDataObj = {
+            id: editId || generateId(),
+            dataConsulta: document.getElementById('consultaData').value,
+            pesoKg: document.getElementById('consultaPeso').value,
+            sintomas: document.getElementById('consultaSintomas').value,
+            baciloscopiaResultado: document.getElementById('consultaBaciloscopia').value,
+            culturaResultado: document.getElementById('consultaCultura').value,
+            rxControleResultado: document.getElementById('consultaRxControle').value,
+            adesao: document.getElementById('consultaAdesao').value,
+            efeitosAdversos: document.getElementById('consultaEfeitosAdversos').value,
+            observacoes: document.getElementById('consultaObservacoes').value
+        };
+        if (!consultaDataObj.dataConsulta) { alert("Por favor, preencha a data da consulta."); return; }
+
+        if (editId) {
+            const index = currentAcompanhamentoData.consultas.findIndex(c => c.id === editId);
+            if (index > -1) currentAcompanhamentoData.consultas[index] = consultaDataObj;
+        } else {
+            currentAcompanhamentoData.consultas.push(consultaDataObj);
+        }
+        renderListaConsultasAcompanhamento();
+         calcularEExibirCondutaSugerida();
+        cancelarEdicaoConsulta();
+    }
+    function salvarAcompanhamentoGeral() {
+        const casoIndiceId = document.getElementById('acompanhamentoCasoIndiceId').value;
+        const casoIndiceIndex = appData.casosIndice.findIndex(ci => ci.id === casoIndiceId);
+        if (casoIndiceIndex === -1) { alert("Erro: Caso índice não encontrado para salvar acompanhamento."); return; }
+
+        currentAcompanhamentoData.tratamentoIniciadoEm = document.getElementById('tbDataInicioTratamento').value;
+        currentAcompanhamentoData.regimeInicial = document.getElementById('tbRegimeInicial').value;
+        currentAcompanhamentoData.regimeInicialOutro = document.getElementById('tbRegimeInicialOutro').value;
+        currentAcompanhamentoData.resultadoTratamento = document.getElementById('tbResultadoFinal').value;
+        currentAcompanhamentoData.dataTermino = document.getElementById('tbDataTermino').value;
+        currentAcompanhamentoData.tdoMeses = getCasoIndiceTdoCheckboxesStatus();
+
+        appData.casosIndice[casoIndiceIndex].acompanhamentoTB = JSON.parse(JSON.stringify(currentAcompanhamentoData));
+        saveAppData();
+        alert("Acompanhamento salvo com sucesso!");
+        fecharModalAcompanhamento();
+         renderCasosIndiceList(); // Re-render list (may update button styles/indicators later)
+    }
+    function calcularMesTratamento(dataInicioTratamento, dataReferencia) {
+        if (!dataInicioTratamento || !dataReferencia) return 0;
+        const inicio = new Date(dataInicioTratamento + 'T00:00:00');
+        const referencia = new Date(dataReferencia + 'T00:00:00');
+        if (referencia < inicio) return 0;
+        const diffTime = Math.abs(referencia - inicio);
+        const diffDaysTotal = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        return Math.max(0, Math.floor(diffDaysTotal / 30)) + 1; // Add 1 to get month number starting from 1
+    }
+    function calcularEExibirCondutaSugerida() {
+        const textoCondutaEl = document.getElementById('textoCondutaSugerida');
+        if (!currentAcompanhamentoData) { textoCondutaEl.innerHTML = "<span class='conduta-alerta'>Dados de acompanhamento não carregados.</span>"; return; }
+        const dataInicio = currentAcompanhamentoData.tratamentoIniciadoEm;
+        if (!dataInicio) { textoCondutaEl.innerHTML = "<span class='conduta-alerta'>Defina a data de início do tratamento.</span>"; return; }
+
+        const consultas = currentAcompanhamentoData.consultas.slice().sort((a,b) => new Date(b.dataConsulta) - new Date(a.dataConsulta));
+        const ultimaConsulta = consultas.length > 0 ? consultas[0] : null;
+        const hoje = new Date().toISOString().split('T')[0];
+        const baseDateForMonthCalc = ultimaConsulta ? ultimaConsulta.dataConsulta : hoje;
+        const mesAtualTratamento = calcularMesTratamento(dataInicio, hoje); // Use today's date to determine current month
+
+        let sugestao = [];
+
+        if (currentAcompanhamentoData.resultadoTratamento && currentAcompanhamentoData.resultadoTratamento !== "") {
+            sugestao.push(`<span class="conduta-info">Tratamento com resultado: ${formatResultado(currentAcompanhamentoData.resultadoTratamento, 'resultado_tb')}.</span>`);
+            if (currentAcompanhamentoData.resultadoTratamento === 'perdido_seguimento') {
+                sugestao.push("<span class='conduta-urgente'>Realizar BUSCA ATIVA do paciente.</span>");
+            } else if (currentAcompanhamentoData.resultadoTratamento === 'falha_terapeutica') {
+                 sugestao.push("<span class='conduta-urgente'>FALHA TERAPÊUTICA: Notificar, solicitar cultura com TSA, reavaliar esquema e caso com especialista.</span>");
+            }
+             const mesesTDO = currentAcompanhamentoData.tdoMeses ? currentAcompanhamentoData.tdoMeses.filter(status => status).length : 0;
+             if (mesesTDO > 0) sugestao.push(`<span class='conduta-info'>TDO registrado em ${mesesTDO} ${mesesTDO === 1 ? 'mês' : 'meses'}.</span>`);
+
+            textoCondutaEl.innerHTML = sugestao.join("<br>");
+            return;
+        }
+
+         // Suggest upcoming monthly consultation if last one was more than ~35 days ago
+         if (!ultimaConsulta) {
+               sugestao.push("<span class='conduta-normal'>Realizar 1ª consulta de seguimento (orientações, avaliação clínica, peso, reforçar TDO).</span>");
+          } else {
+               const lastConsultationDate = new Date(ultimaConsulta.dataConsulta + 'T00:00:00');
+               const thirtyFiveDaysAgo = new Date();
+               thirtyFiveDaysAgo.setDate(thirtyFiveDaysAgo.getDate() - 35);
+               if (lastConsultationDate < thirtyFiveDaysAgo) {
+                    sugestao.push("<span class='conduta-alerta'>Consulta de seguimento mensal pendente (última foi há mais de 35 dias). Agendar próxima.</span>");
+               } else {
+                     sugestao.push("<span class='conduta-info'>Agendar próxima consulta de seguimento mensal.</span>");
+               }
+          }
+
+
+        if (ultimaConsulta) {
+            const mesUltimaConsulta = calcularMesTratamento(dataInicio, ultimaConsulta.dataConsulta);
+            const baciloUltimaConsulta = ultimaConsulta.baciloscopiaResultado;
+             const rxUltimaConsulta = ultimaConsulta.rxControleResultado;
+
+            // Check for overdue 2-month baciloscopy regardless of last consultation date, if we are past month 2
+             if (mesAtualTratamento >= 2) {
+                 const consultaMes2OuMais = consultas.find(c => calcularMesTratamento(dataInicio, c.dataConsulta) >= 2); // Find first consultation at or after month 2
+                  if (!consultaMes2OuMais || (consultaMes2OuMais.baciloscopiaResultado === "" || consultaMes2OuMais.baciloscopiaResultado === 'nao_realizada' || consultaMes2OuMais.baciloscopiaResultado === 'aguardando')) {
+                     sugestao.push("<span class='conduta-urgente'>URGENTE: Coletar/Verificar resultado da baciloscopia de escarro (controle do 2º mês) se ainda não o fez após Mês 2.</span>");
+                 } else if (consultaMes2OuMais.baciloscopiaResultado.startsWith('positiva')) {
+                     sugestao.push("<span class='conduta-alerta'>ALERTA: Baciloscopia positiva no 2º mês (ou posterior). Considerar prolongar fase intensiva, solicitar cultura e Teste de Sensibilidade (TSA). Avaliar adesão/TDO.</span>");
+                 }
+             }
+
+
+            // Check for overdue final baciloscopy if regime is 6 months and we are past month 5/6
+            const regime = document.getElementById('tbRegimeInicial').value;
+            const mesesRegime = (regime === 'RHZE' || regime === 'RHE') ? 6 : 0; // Assuming standard 6-month regimes
+
+             if (mesesRegime === 6 && mesAtualTratamento >= 5) {
+                 const consultaMes5OuMais = consultas.find(c => calcularMesTratamento(dataInicio, c.dataConsulta) >= 5); // Find first consultation at or after month 5
+                 if (!consultaMes5OuMais || (consultaMes5OuMais.baciloscopiaResultado === "" || consultaMes5OuMais.baciloscopiaResultado === 'nao_realizada' || consultaMes5OuMais.baciloscopiaResultado === 'aguardando')){
+                     sugestao.push("<span class='conduta-normal'>Coletar baciloscopia de escarro (controle do final do tratamento - 5º ou 6º mês) se ainda não o fez após Mês 5.</span>");
+                 } else if (consultaMes5OuMais.baciloscopiaResultado.startsWith('positiva')) {
+                    sugestao.push(`<span class='conduta-urgente'>ALERTA: Baciloscopia positiva no final do tratamento (${calcularMesTratamento(dataInicio, consultaMes5OuMais.dataConsulta)}º mês). Investigar falha terapêutica. Solicitar cultura e TSA. Reavaliar TDO/adesão.</span>`);
+                 }
+             }
+
+
+             if (mesAtualTratamento > mesesRegime && mesesRegime > 0 && currentAcompanhamentoData.resultadoTratamento === "") {
+                 sugestao.push("<span class='conduta-alerta'>Tratamento prolongado (> " + mesesRegime + " meses). Reavaliar caso, adesão/TDO, e considerar resistência se baciloscopia persistir positiva ou sintomas retornarem.</span>");
+             }
+
+
+            if (ultimaConsulta.adesao === 'ruim') sugestao.push("<span class='conduta-alerta'>ALERTA: Adesão ruim na última consulta. Reforçar suporte, TDO se possível, e estratégias de adesão.</span>");
+            if (ultimaConsulta.efeitosAdversos && ultimaConsulta.efeitosAdversos.trim() !== "") sugestao.push("<span class='conduta-alerta'>ATENÇÃO: Avaliar e manejar efeitos adversos relatados na última consulta.</span>");
+            if (ultimaConsulta.sintomas && (ultimaConsulta.sintomas.toLowerCase().includes("piora") || ultimaConsulta.sintomas.toLowerCase().includes("novos"))) {
+                sugestao.push("<span class='conduta-alerta'>ATENÇÃO: Piora ou novos sintomas na última consulta. Investigar.</span>");
+            }
+             if (rxUltimaConsulta === "piora" || rxUltimaConsulta === "sugestivo_tb_ativa") {
+                sugestao.push("<span class='conduta-urgente'>ALERTA: RX de Controle com piora ou sugestivo de TB ativa. Investigar falha terapêutica/resistência. Coletar baciloscopia, cultura e TSA.</span>");
+            }
+        }
+
+        const mesesTDO = currentAcompanhamentoData.tdoMeses ? currentAcompanhamentoData.tdoMeses.filter(status => status).length : 0;
+        sugestao.push(`<span class='conduta-info'>Registrar TDO mensal. TDO registrado em ${mesesTDO} ${mesesTDO === 1 ? 'mês' : 'meses'}.</span>`);
+
+
+        textoCondutaEl.innerHTML = sugestao.length > 0 ? sugestao.join("<br>") : "<span class='conduta-info'>Manter acompanhamento regular.</span>";
+
+         // Update TDO checkboxes based on regime selection in the modal header
+         renderCasoIndiceTdoCheckboxes(currentAcompanhamentoData.tdoMeses);
+    }
+
+    // --- MODAL ACOMPANHAMENTO TPT (CONTACT) FUNCTIONS ---
+     function fecharTptFollowUpModal() {
+         console.log("Closing TPT Acompanhamento Modal.");
+         document.getElementById('modalAcompanhamentoTPT').style.display = 'none';
+         currentTPTFollowUpContactId = null; // Clear current contact context
+         document.getElementById('formNovoTptFollowUp').classList.add('hidden');
+         cancelarEdicaoTptFollowUp(); // This also shows the "Add Follow-up" button again
+         renderizarCascataIndividual(); // Refresh cascade view to show updated follow-up count
+         renderPainelContatosLaterais(document.getElementById('contatoCasoIndiceSelect').value); // Refresh side panel
+         renderAcoesPendentesList(); // Refresh pending actions list
+     }
+
+     function abrirTptFollowUpModal() {
+         console.log("Opening TPT Acompanhamento Modal.");
+         // This button is only visible when editing a contact
+         const contactId = document.getElementById('contactId').value;
+         const contato = appData.contatos.find(c => c.id === contactId);
+         if (!contato) {
+             alert("Erro: Contato não encontrado para acompanhamento TPT. Selecione um contato válido primeiro.");
+             return;
+         }
+
+         currentTPTFollowUpContactId = contactId;
+         document.getElementById('acompanhamentoTPTContactId').value = contactId;
+         document.getElementById('modalAcompanhamentoTPTTitulo').textContent = `Acompanhamento de TPT para: ${contato.nome}`;
+
+         renderListaTptFollowUps(contato.tptFollowUps || []); // Load and render existing follow-ups
+
+         document.getElementById('modalAcompanhamentoTPT').style.display = 'block';
+     }
+
+     function renderListaTptFollowUps(followUpsArray) {
+         const container = document.getElementById('listaConsultasAcompanhamentoTPT');
+         container.innerHTML = ''; // Clear previous entries
+
+          if (!followUpsArray || followUpsArray.length === 0) {
+             container.innerHTML = '<p>Nenhum registro de acompanhamento de TPT.</p>';
+             return;
+         }
+
+         // Sort follow-ups by date
+         followUpsArray.sort((a, b) => new Date(a.data) - new Date(b.data));
+
+         followUpsArray.forEach((followUp, index) => {
+             const followUpEl = document.createElement('div');
+             followUpEl.classList.add('tpt-followup-item');
+             followUpEl.innerHTML = `
+                 <h6>Registro ${index + 1}: ${new Date(followUp.data + 'T00:00:00').toLocaleDateString('pt-BR')}
+                     <div>
+                         <button type="button" class="edit-btn" onclick="editarTptFollowUp('${followUp.id}')" style="font-size:0.7em; padding:3px 6px;">Editar</button>
+                         <button type="button" class="remove-btn" onclick="removerTptFollowUp('${followUp.id}')" style="font-size:0.7em; padding:3px 6px;">Remover</button>
+                     </div>
+                 </h6>
+                 <p><strong>Adesão:</strong> ${formatResultado(followUp.adesao, 'adesao')}</p>
+                 <p><strong>Eventos Adversos / Queixas:</strong> ${followUp.eventosAdversos || 'N/A'}</p>
+                 <p><strong>Condutas Realizadas:</strong> ${followUp.condutas || 'N/A'}</p>
+             `;
+             container.appendChild(followUpEl);
+         });
+     }
+
+     function adicionarNovoTptFollowUpForm() {
+         document.getElementById('formNovoTptFollowUp').classList.remove('hidden');
+         document.getElementById('formNovoTptFollowUpTitulo').textContent = 'Novo Registro de Acompanhamento';
+         document.getElementById('tptFollowUpEditId').value = ''; // Clear ID for new entry
+         document.getElementById('tptFollowUpData').value = new Date().toISOString().split('T')[0]; // Default to today
+         document.getElementById('tptFollowUpAdesao').value = 'boa';
+         document.getElementById('tptFollowUpEventosAdversos').value = '';
+         document.getElementById('tptFollowUpCondutas').value = '';
+         document.getElementById('tptFollowUpData').focus();
+         // Hide the "Add Follow-up" button while the form is open
+         document.querySelector('#modalAcompanhamentoTPT .modal-body > button.add-followup-btn').classList.add('hidden');
+     }
+
+     function editarTptFollowUp(followUpId) {
+         const contact = appData.contatos.find(c => c.id === currentTPTFollowUpContactId);
+         if (!contact || !contact.tptFollowUps) return;
+         const followUp = contact.tptFollowUps.find(f => f.id === followUpId);
+         if (!followUp) return;
+
+         document.getElementById('formNovoTptFollowUp').classList.remove('hidden');
+         document.getElementById('formNovoTptFollowUpTitulo').textContent = `Editar Registro (${new Date(followUp.data + 'T00:00:00').toLocaleDateString('pt-BR')})`;
+         document.getElementById('tptFollowUpEditId').value = followUp.id;
+         document.getElementById('tptFollowUpData').value = followUp.data;
+         document.getElementById('tptFollowUpAdesao').value = followUp.adesao || 'boa';
+         document.getElementById('tptFollowUpEventosAdversos').value = followUp.eventosAdversos || '';
+         document.getElementById('tptFollowUpCondutas').value = followUp.condutas || '';
+         document.getElementById('tptFollowUpData').focus();
+         // Hide the "Add Follow-up" button while the form is open
+         document.querySelector('#modalAcompanhamentoTPT .modal-body > button.add-followup-btn').classList.add('hidden');
+     }
+
+     function removerTptFollowUp(followUpId) {
+         if (!confirm("Tem certeza que deseja remover este registro de acompanhamento?")) return;
+         const contactIndex = appData.contatos.findIndex(c => c.id === currentTPTFollowUpContactId);
+         if (contactIndex === -1 || !appData.contatos[contactIndex].tptFollowUps) return;
+
+         appData.contatos[contactIndex].tptFollowUps = appData.contatos[contactIndex].tptFollowUps.filter(f => f.id !== followUpId);
+         saveAppData();
+         renderListaTptFollowUps(appData.contatos[contactIndex].tptFollowUps);
+     }
+
+     function cancelarEdicaoTptFollowUp() {
+         document.getElementById('formNovoTptFollowUp').classList.add('hidden');
+         document.getElementById('tptFollowUpEditId').value = '';
+          // Show the "Add Follow-up" button again
+         document.querySelector('#modalAcompanhamentoTPT .modal-body > button.add-followup-btn').classList.remove('hidden');
+     }
+
+     function salvarTptFollowUp() {
+         const editId = document.getElementById('tptFollowUpEditId').value;
+         const contactIndex = appData.contatos.findIndex(c => c.id === currentTPTFollowUpContactId);
+         if (contactIndex === -1) { alert("Erro: Contato não encontrado para salvar acompanhamento."); return; }
+
+         const followUpDataObj = {
+             id: editId || generateId(),
+             data: document.getElementById('tptFollowUpData').value,
+             adesao: document.getElementById('tptFollowUpAdesao').value,
+             eventosAdversos: document.getElementById('tptFollowUpEventosAdversos').value,
+             condutas: document.getElementById('tptFollowUpCondutas').value
+         };
+
+         if (!followUpDataObj.data) { alert("Por favor, preencha a data do acompanhamento."); return; }
+
+         if (!appData.contatos[contactIndex].tptFollowUps) {
+             appData.contatos[contactIndex].tptFollowUps = [];
+         }
+
+         if (editId) {
+             const followUpIndex = appData.contatos[contactIndex].tptFollowUps.findIndex(f => f.id === editId);
+             if (followUpIndex > -1) appData.contatos[contactIndex].tptFollowUps[followUpIndex] = followUpDataObj;
+         } else {
+             appData.contatos[contactIndex].tptFollowUps.push(followUpDataObj);
+         }
+
+         saveAppData();
+         renderListaTptFollowUps(appData.contatos[contactIndex].tptFollowUps);
+         cancelarEdicaoTptFollowUp();
+     }
+
+
+    // --- PDF Export ---
+    function exportarPDF() {
+      document.body.classList.add('exporting-pdf');
+      const elementToExport = document.querySelector('main');
+      const options = {
+          margin: [0.5, 0.5, 0.5, 0.5],
+          filename: 'painel_TPT_integrado.pdf',
+          image: { type: 'jpeg', quality: 0.98 },
+          html2canvas: { scale: 2, useCORS: true, logging: false, width: elementToExport.scrollWidth, height: elementToExport.scrollHeight },
+          jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+      };
+      html2pdf().from(elementToExport).set(options).save().then(() => {
+          document.body.classList.remove('exporting-pdf');
+      }).catch(err => {
+          console.error("Error exporting PDF:", err);
+          document.body.classList.remove('exporting-pdf');
+      });
+    }
+
+    // --- Event Listeners and Initial Load ---
+    // Listen for change on TPT Regime select to update TPT TDO checkboxes
+    document.getElementById('contatoTptRegime').addEventListener('change', (event) => {
+        // Only re-render default checkboxes if not currently editing a contact OR
+        // if editing, re-render based on the *new* selected regime's expected duration
+         const contactId = document.getElementById('contactId').value;
+         if (!contactId) { // New contact
+              renderTptTdoCheckboxes([]); // Will use the default based on the new regime
+         } else { // Editing existing contact
+             // When editing, render based on the *saved* state if it exists for the NEW regime,
+             // or fall back to default size if no saved state matches the new regime.
+             // This logic is tricky - safest is to re-render based on the new regime's default
+             // number of months, potentially losing saved state if regime changes often.
+             // Let's re-render based on the new selected regime's expected length, preserving check status up to that length if available.
+             // The renderTptTdoCheckboxes function handles this logic now.
+             const contato = appData.contatos.find(c => c.id === contactId);
+             renderTptTdoCheckboxes(contato?.tptTdoMeses || []); // Pass existing data to preserve checks within new bounds
+         }
+    });
+
+     // Listen for change on TB Regime select to update TB TDO checkboxes in modal
+    document.getElementById('tbRegimeInicial').addEventListener('change', (event) => {
+         // When regime changes in the modal, re-render TDO checkboxes based on the new regime's expected length
+         // but preserve existing checks for months that still exist in the new set.
+         // This logic is handled by renderCasoIndiceTdoCheckboxes now.
+          if (currentAcompanhamentoData) { // Only run if modal data is loaded
+               // Update regime in current data object before re-rendering checkboxes
+               currentAcompanhamentoData.regimeInicial = document.getElementById('tbRegimeInicial').value;
+               currentAcompanhamentoData.regimeInicialOutro = document.getElementById('tbRegimeInicialOutro').value;
+              renderCasoIndiceTdoCheckboxes(currentAcompanhamentoData.tdoMeses); // Pass current data to preserve checks
+              calcularEExibirCondutaSugerida(); // Recalculate suggestions based on potentially new regime length
+          }
+    });
+
+
+    window.onload = loadAppData;
+  </script>
+</body>
+</html>
